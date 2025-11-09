@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Студенческий совет - Университет</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #f39c12;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: url('https://via.placeholder.com/1200x400') no-repeat center center/cover;
+            color: white;
+            text-align: center;
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #f39c12;
+            color: white;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #e67e22;
+        }
+
+        /* Sections */
+        section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* About */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .about-image img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Goals Section */
+        .goals-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .goal-card {
+            background: white;
+            padding: 2.5rem 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-top: 4px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .goal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #3498db, #f39c12);
+        }
+
+        .goal-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .goal-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .goal-card h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            min-height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .goal-card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Анимация появления карточек */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .goal-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .goal-card:nth-child(1) { animation-delay: 0.1s; }
+        .goal-card:nth-child(2) { animation-delay: 0.2s; }
+        .goal-card:nth-child(3) { animation-delay: 0.3s; }
+        .goal-card:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Team */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .team-member {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+
+        .member-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #666;
+        }
+
+        .member-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .member-role {
+            color: #f39c12;
+            margin-bottom: 1rem;
+        }
+
+        /* Events */
+        .events-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .event-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .event-date {
+            color: #f39c12;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-title {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Contact */
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .contact-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .contact-item {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .contact-item i {
+            color: #3498db;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .contact-item a {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .contact-item a:hover {
+            color: #f39c12;
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            nav ul {
+                margin-top: 1rem;
+                flex-direction: column;
+            }
+
+            nav ul li {
+                margin: 0.5rem 0;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .about-content,
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .goals-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .goal-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .goal-card h4 {
+                font-size: 1.2rem;
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Университет</div>
+                <nav>
+                    <ul>
+                        <li><a href="#about">О нас</a></li>
+                        <li><a href="#team">Состав</a></li>
+                        <li><a href="#events">Мероприятия</a></li>
+                        <li><a href="#contact">Контакты</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Студенческий совет</h1>
+                <p>Представляем интересы студентов и организуем мероприятия для развития университетского сообщества</p>
+                <a href="#contact" class="btn">Связаться с нами</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <div class="section-title">
+                <h2>О студенческом совете</h2>
+                <p>Узнайте больше о нашей деятельности и целях</p>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Наша миссия</h3>
+                    <p>Студенческий совет - это выборный орган, который представляет интересы студентов перед администрацией университета, организует культурные, спортивные и образовательные мероприятия, а также способствует развитию студенческого сообщества.</p>
+                    
+                    <h3>Наши цели</h3>
+                </div>
+                <div class="about-image">
+                    <img src="https://www.muiv.ru/upload/img/studentu/studsovet.webp" alt="Студенческий совет">
+                </div>
+            </div>
+            
+            <!-- Карточки целей -->
+            <div class="goals-container">
+                <div class="goal-card">
+                    <div class="goal-icon">🛡️</div>
+                    <h4>Защита прав и интересов студентов</h4>
+                    <p>Мы представляем ваши интересы перед администрацией университета и решаем возникающие вопросы</p>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-icon">🎭</div>
+                    <h4>Организация студенческих мероприятий</h4>
+                    <p>Проводим культурные, спортивные и образовательные события для развития студенческого сообщества</p>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-icon">👥</div>
+                    <h4>Развитие студенческого самоуправления</h4>
+                    <p>Создаем условия для активного участия студентов в жизни университета</p>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-icon">📚</div>
+                    <h4>Улучшение качества образования</h4>
+                    <p>Работаем над совершенствованием учебного процесса и условий обучения</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" style="background: #f8f9fa;">
+        <div class="container">
+            <div class="section-title">
+                <h2>Состав совета</h2>
+                <p>Знакомьтесь с нашими активными участниками</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-member">
+                     <div class="member-photo">
+        <img src="c:\Users\User\Pictures\Bez_imeni_3.jpg"width="180" height="180" class="employees__photo" alt="" loading="lazy">
+    </div>
+                    <div class="member-name">Пекарусь Ярослав Олегович</div>
+                    <div class="member-role">Начальник отдела</div>
+                     <div class="member-contacts">
+                    <strong>Контакты:</strong><br>
+                    +7 (495) 783-68-48, доб. 5147
+                </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-photo">
+        <img src="c:\Users\User\Pictures\Bez_imeni_3 (1).jpg" width="180" height="180" class="employees__photo" alt="" loading="lazy">
+    </div>
+                    <div class="member-name">Фандей Анна Руслановна</div>
+                    <div class="member-role">Заместитель начальника</div>
+                     <div class="member-contacts">
+                    <strong>Контакты:</strong><br>
+                    +7 (495) 783-68-48, доб. 5147
+                </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events">
+        <div class="container">
+            <div class="section-title">
+                <h2>Ближайшие мероприятия</h2>
+                <p>Присоединяйтесь к нашим событиям</p>
+            </div>
+            <div class="events-list">
+                <div class="event-item">
+                    <div class="event-date">15 октября 2024</div>
+                    <div class="event-title">День открытых дверей</div>
+                    <p>Приглашаем всех желающих познакомиться с деятельностью студенческого совета</p>
+                </div>
+                <div class="event-item">
+                    <div class="event-date">25 октября 2024</div>
+                    <div class="event-title">Осенний бал</div>
+                    <p>Традиционное мероприятие для студентов всех факультетов</p>
+                </div>
+                <div class="event-item">
+                    <div class="event-date">5 ноября 2024</div>
+                    <div class="event-title">Встреча с администрацией</div>
+                    <p>Обсуждение вопросов улучшения студенческой жизни</p>
+                </div>
+                <div class="event-item">
+                    <div class="event-date">15 ноября 2024</div>
+                    <div class="event-title">Спортивный турнир</div>
+                    <p>Соревнования между факультетами по различным видам спорта</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" style="background: #f8f9fa;">
+        <div class="container">
+            <div class="section-title">
+                <h2>Свяжитесь с нами</h2>
+                <p>Мы всегда рады вашим предложениям и вопросам</p>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span>📍</span>
+                        <div>
+                            <strong>Адрес:</strong><br>
+                            г. Москва, 2-й Кожуховский пр-д, 12, стр.1, главный корпус, 2 этаж, кабинет №217
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span>📞</span>
+                        <div>
+                            <strong>Телефон студсовета:</strong><br>
+                           +7 (495) 783-68-48, доб. 5147
+                        </div>
+                    </div>                  
+                    <div class="contact-item">
+                        <span>📱</span>
+                        <div>
+                            <strong>Социальные сети:</strong><br>
+                              <a href="https://vk.com/muvitte" target="_blank">VK: https://vk.com/muvitte</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-info">
+                    <h3>Обратная связь</h3>
+                    <p>Если у вас есть вопросы, предложения или вы хотите присоединиться к нашей команде, заполните форму обратной связи на сайте университета или напишите нам напрямую.</p>
+                    <p>Мы ценим каждое ваше мнение и стремимся сделать студенческую жизнь лучше!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Студенческий совет Университета. Все права защищены.</p>
+            <p>Сайт разработан студенческим советом</p>
+        </div>
+    </footer>
+</body>
+</html>
