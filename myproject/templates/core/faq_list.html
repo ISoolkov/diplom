@@ -1,0 +1,26 @@
+﻿{% extends "base.html" %}
+{% block title %}FAQ студсовета{% endblock %}
+{% block content %}
+<h1>Часто задаваемые вопросы</h1>
+<p>Ответы на ключевые вопросы о работе студсовета, мероприятиях и вступлении в команду.</p>
+
+{% for item in faq_items %}
+    <article class="card faq-item">
+        <h2>{{ item.question }}</h2>
+        <div>{{ item.answer|linebreaks }}</div>
+    </article>
+{% empty %}
+    <article class="card faq-item">
+        <h2>Как вступить в студсовет?</h2>
+        <p>Заполните заявку в разделе «Вступить». После этого команда свяжется с вами для знакомства.</p>
+    </article>
+    <article class="card faq-item">
+        <h2>Кто может участвовать в проектах студсовета?</h2>
+        <p>Любой студент МУИВ: можно подключаться к проектам, волонтерским акциям и организации мероприятий.</p>
+    </article>
+    <article class="card faq-item">
+        <h2>Где следить за анонсами?</h2>
+        <p>В разделе «Мероприятия» и в ленте социальной сети студсовета.</p>
+    </article>
+{% endfor %}
+{% endblock %}

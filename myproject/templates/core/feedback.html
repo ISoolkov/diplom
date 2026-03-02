@@ -1,0 +1,25 @@
+﻿{% extends "base.html" %}
+{% block title %}Обратная связь студсовета{% endblock %}
+{% block content %}
+<h1>Обратная связь и предложения</h1>
+<p>Оставьте вопрос, инициативу или обращение в студсовет. Мы рассмотрим его в ближайшие сроки.</p>
+
+<div class="community-layout">
+    <section>
+        <form method="post" class="form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Отправить обращение</button>
+        </form>
+    </section>
+
+    <aside>
+        <article class="section-panel">
+            <h2>Контакты студсовета</h2>
+            <p><strong>Адрес:</strong><br>г. Москва, 2-й Кожуховский пр-д, 12, стр. 1, главный корпус, кабинет №217</p>
+            <p><strong>Телефон:</strong><br>+7 (495) 783-68-48, доб. 5147</p>
+            <p><strong>Email:</strong><br>info@muiv.ru</p>
+        </article>
+    </aside>
+</div>
+{% endblock %}

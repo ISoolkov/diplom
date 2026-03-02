@@ -1,0 +1,70 @@
+﻿{% extends "base.html" %}
+{% block title %}Студенческий совет | МУ им. С.Ю. Витте{% endblock %}
+{% block content %}
+<section class="section-panel">
+    <h1>Студенческий совет</h1>
+    <p><strong>Навигация студсовета:</strong> Новости, Мероприятия, Социальная сеть, FAQ, Документы, Обратная связь, Заявка на вступление.</p>
+</section>
+
+<section>
+    <h2>Факультеты и подразделения</h2>
+    <div class="info-grid">
+        <article class="info-card"><h3>Факультет управления</h3></article>
+        <article class="info-card"><h3>Факультет информационных технологий</h3></article>
+        <article class="info-card"><h3>Факультет экономики и финансов</h3></article>
+        <article class="info-card"><h3>Юридический факультет</h3></article>
+        <article class="info-card"><h3>Факультет психолого-педагогического образования</h3></article>
+        <article class="info-card"><h3>Научно-образовательный центр устойчивого развития</h3></article>
+        <article class="info-card"><h3>Колледж</h3></article>
+        <article class="info-card"><h3>Аспирантура</h3></article>
+    </div>
+</section>
+
+<section class="section-panel">
+    <h2>Контакты и график работы</h2>
+    <p><strong>Где нас найти:</strong><br>г. Москва, 2-й Кожуховский пр-д, 12, стр.1, главный корпус, 2 этаж, кабинет №217</p>
+    <p><strong>Телефон студсовета:</strong> +7 (495) 783-68-48, доб. 5147</p>
+    <p><strong>Общий телефон:</strong> +7 (499) 877-17-05</p>
+</section>
+
+<section>
+    <h2>Кто мы</h2>
+    <p>Студенческий совет — добровольный орган студенческого самоуправления.</p>
+    <p>Нам важно слышать голос каждого студента Университета и помочь тем, кто хочет реализовать свою идею.</p>
+    <p>Студенческий совет — это не только очень сильная команда единомышленников, но и большая дружная семья, которая стремится придать яркие краски всему, что их окружает.</p>
+</section>
+
+<section>
+    <h2>Команда студсовета</h2>
+    <div class="card-grid">
+        {% for member in members %}
+            <article class="card">
+                <h3>{{ member.full_name }}</h3>
+                <p><strong>{{ member.position }}</strong></p>
+                <p>{{ member.bio|default:"Информация о члене команды будет опубликована позже." }}</p>
+                {% if member.email %}<p>Email: {{ member.email }}</p>{% endif %}
+                {% if member.phone %}<p>Телефон: {{ member.phone }}</p>{% endif %}
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Пекарусь Ярослав Олегович</h3>
+                <p><strong>Начальник отдела</strong></p>
+                <p>Команда отдела молодежной политики и воспитательной деятельности.</p>
+            </article>
+            <article class="card">
+                <h3>Фандей Анна Руслановна</h3>
+                <p><strong>Заместитель начальника</strong></p>
+                <p>Поддержка студенческих проектов и инициатив.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="cta-band">
+    <div>
+        <h2>Мы ждем тебя в нашей дружной семье</h2>
+        <p>Инициатива наказуема, но за нами будущее. Присоединяйся к команде студсовета.</p>
+    </div>
+    <p><a href="{% url 'core:join' %}">Подать заявку</a></p>
+</section>
+{% endblock %}

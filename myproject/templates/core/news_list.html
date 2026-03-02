@@ -1,0 +1,30 @@
+﻿{% extends "base.html" %}
+{% block title %}Новости студсовета{% endblock %}
+{% block content %}
+<h1>Новости студсовета</h1>
+<div class="card-grid">
+    {% for item in page_obj %}
+        <article class="card">
+            <h2><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h2>
+            <p>{{ item.summary|truncatewords:35 }}</p>
+            <small>{{ item.published_at|date:"d.m.Y H:i" }}</small>
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Новости скоро появятся</h2>
+            <p>Пока раздел пуст, но мы уже готовим публикации о работе студенческого совета.</p>
+        </article>
+    {% endfor %}
+</div>
+{% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+        {% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Вперед</a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

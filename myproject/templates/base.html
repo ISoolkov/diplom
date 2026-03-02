@@ -1,0 +1,242 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Студенческий совет МУ им. С.Ю. Витте{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header container">
+            <a class="logo-muiv" href="{% url 'core:home' %}">
+                <img class="logo-muiv--full" src="{% static 'img/logo-muiv.svg' %}" alt="МУ им. С.Ю. Витте">
+                <img class="logo-muiv--mini" src="{% static 'img/logo-muiv-mini.svg' %}" alt="МУ им. С.Ю. Витте">
+            </a>
+
+            <div class="header-content">
+                <div class="header-top-row">
+                    <div class="icon-block">
+                        <a class="header-btn right-separator" href="tel:+74998771705">
+                            <span class="icon-header icon-header--tel"></span>
+                            <span>+7 (499) 877-17-05</span>
+                        </a>
+                        <a class="header-btn right-separator" href="mailto:info@muiv.ru">
+                            <span class="icon-header icon-header--mail"></span>
+                            <span>info@muiv.ru</span>
+                        </a>
+                        <a class="header-btn" href="#contacts">
+                            <span class="icon-header icon-header--city"></span>
+                            <span>Москва</span>
+                        </a>
+                    </div>
+
+                    <div class="icon-block">
+                        <a class="header-btn left-separator" href="{% url 'core:community' %}">
+                            <span class="icon-header icon-header--chat"></span>
+                            <span>Сообщество</span>
+                        </a>
+                        {% if user.is_authenticated %}
+                            <a class="header-btn left-separator" href="{% url 'core:cabinet' %}">
+                                <span class="icon-header icon-header--lk"></span>
+                                <span>Личный кабинет</span>
+                            </a>
+                            <form method="post" action="{% url 'logout' %}" class="inline-form">
+                                {% csrf_token %}
+                                <button type="submit" class="header-btn link-button left-separator">
+                                    <span class="icon-header icon-header--logout"></span>
+                                    <span>Выйти</span>
+                                </button>
+                            </form>
+                        {% else %}
+                            <a class="header-btn left-separator" href="{% url 'login' %}">
+                                <span class="icon-header icon-header--lk"></span>
+                                <span>Вход</span>
+                            </a>
+                            <a class="header-btn" href="{% url 'core:register' %}">
+                                <span class="icon-header icon-header--register"></span>
+                                <span>Регистрация</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="header-bottom-row">
+                    <nav class="top-nav">
+                        <a href="{% url 'core:home' %}">Главная</a>
+                        <a href="{% url 'core:council' %}">Студсовет</a>
+                        <a href="{% url 'core:news_list' %}">Новости</a>
+                        <a href="{% url 'core:events_list' %}">Мероприятия</a>
+                        <a href="{% url 'core:community' %}">Соцсеть</a>
+                        <a href="{% url 'core:faq' %}">FAQ</a>
+                        <a href="{% url 'core:documents' %}">Документы</a>
+                    </nav>
+
+                    <div class="social-header">
+                        <a class="social-header-btn" href="https://t.me/mosvitte" target="_blank" rel="noopener" aria-label="Telegram">
+                            <span class="icon-header-social icon-header--telegram"></span>
+                        </a>
+                        <a class="social-header-btn" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
+                            <span class="icon-header-social icon-header--vk"></span>
+                        </a>
+                        <a class="social-header-btn" href="https://www.youtube.com/@muiv_moscow" target="_blank" rel="noopener" aria-label="YouTube">
+                            <span class="icon-header-social icon-header--youtube"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a class="btnCommon btnCommon--red header-btn-apply" href="{% url 'core:join' %}">Вступить в студсовет</a>
+                <button type="button" class="btn-menu-hamburger" id="mobileMenuOpen" aria-label="Открыть меню"></button>
+            </div>
+        </div>
+
+        <div class="mobileMenu" id="mobileMenu">
+            <div class="mobileMenu-header">
+                <a class="logo-muiv" href="{% url 'core:home' %}">
+                    <img class="logo-muiv--mini" src="{% static 'img/logo-muiv-mini.svg' %}" alt="МУ им. С.Ю. Витте">
+                </a>
+                <button type="button" class="mobileMenu-close" id="mobileMenuClose" aria-label="Закрыть меню"></button>
+            </div>
+            <nav class="mobileMenu-body">
+                <a href="{% url 'core:home' %}">Главная</a>
+                <a href="{% url 'core:council' %}">Студенческий совет</a>
+                <a href="{% url 'core:news_list' %}">Новости студсовета</a>
+                <a href="{% url 'core:events_list' %}">Мероприятия</a>
+                <a href="{% url 'core:community' %}">Социальная сеть</a>
+                <a href="{% url 'core:join' %}">Заявка на вступление</a>
+                <a href="{% url 'core:faq' %}">FAQ студсовета</a>
+                <a href="{% url 'core:documents' %}">Документы</a>
+                <a href="{% url 'core:feedback' %}">Контакты и обращения</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="message">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="main-footer" id="contacts">
+        <div class="container">
+            <div class="footer_grid">
+                <div class="s1 footer_box">
+                    <a class="footer_logo-muiv" href="{% url 'core:home' %}">
+                        <img src="{% static 'img/logo-muiv-white.svg' %}" alt="МУИВ">
+                    </a>
+                </div>
+
+                <div class="s5 footer_box">
+                    <a href="{% url 'core:council' %}">Студенческий совет — добровольный орган студенческого самоуправления</a>
+                </div>
+
+                <nav class="s8 footer_box footer_box_menu">
+                    <span class="footer_title">Навигация</span>
+                    <div class="footer_box_menu_wrapper">
+                        <a href="{% url 'core:home' %}">Главная</a>
+                        <a href="{% url 'core:council' %}">О студсовете</a>
+                        <a href="{% url 'core:community' %}">Соцсеть</a>
+                        <a href="{% url 'core:join' %}">Вступить</a>
+                    </div>
+                </nav>
+
+                <nav class="s13 footer_box footer_box_menu">
+                    <span class="footer_title">Информация</span>
+                    <div class="footer_box_menu_wrapper">
+                        <a href="{% url 'core:news_list' %}">Новости студсовета</a>
+                        <a href="{% url 'core:events_list' %}">Анонсы мероприятий</a>
+                        <a href="{% url 'core:faq' %}">Вопросы и ответы</a>
+                        <a href="{% url 'core:documents' %}">Документы</a>
+                    </div>
+                </nav>
+
+                <nav class="s9 footer_box footer_box_menu">
+                    <span class="footer_title">Факультеты</span>
+                    <div class="footer_box_menu_wrapper">
+                        <span>Факультет управления</span>
+                        <span>Факультет ИТ</span>
+                        <span>Факультет экономики и финансов</span>
+                        <span>Юридический факультет</span>
+                    </div>
+                </nav>
+
+                <address class="s7 footer_box">
+                    <span class="footer_title">Где нас найти</span>
+                    <a class="footer_link_icon link_address" href="https://yandex.ru/maps/-/CDUOzQIO" target="_blank" rel="noopener">
+                        г. Москва, 2-й Кожуховский пр-д, 12, стр.1, главный корпус, 2 этаж, кабинет №217
+                    </a>
+                    <a class="footer_link_icon link_mail" href="mailto:info@muiv.ru">info@muiv.ru</a>
+                </address>
+
+                <address class="s12 footer_box">
+                    <span class="footer_title">Телефон студсовета</span>
+                    <a class="footer_link_icon link_tel" href="tel:+74957836848">+7 (495) 783-68-48, доб. 5147</a>
+                    <a class="footer_link_icon link_tel" href="tel:+74998771705">+7 (499) 877-17-05</a>
+                </address>
+
+                <div class="s6 footer_box">
+                    <span class="footer_title">Контакты и график работы</span>
+                    <span class="footer_subtitle">Приемная комиссия</span>
+                    <div class="opening_hours">
+                        <span><i>Пн-Чт:</i> 09:30-18:15</span>
+                        <span><i>Пт:</i> 09:30-17:00</span>
+                    </div>
+                </div>
+
+                <nav class="s11 footer_box">
+                    <span class="footer_title">Социальные сети</span>
+                    <div class="footer_social">
+                        <a class="icon_vk" href="https://vk.com/mosvitte" target="_blank" rel="noopener">VK</a>
+                        <a class="icon_telegram" href="https://t.me/mosvitte" target="_blank" rel="noopener">Telegram</a>
+                        <a class="icon_youtube" href="https://www.youtube.com/@muiv_moscow" target="_blank" rel="noopener">YouTube</a>
+                    </div>
+                </nav>
+
+                <div class="s16 footer_box">
+                    <span class="footer_copyright">2026 © МУИВ. Все права защищены.</span>
+                </div>
+                <div class="s20 footer_box"></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var menu = document.getElementById('mobileMenu');
+            var openBtn = document.getElementById('mobileMenuOpen');
+            var closeBtn = document.getElementById('mobileMenuClose');
+            if (!menu || !openBtn || !closeBtn) {
+                return;
+            }
+
+            function openMenu() {
+                menu.classList.add('mobileMenu--open');
+                document.body.classList.add('menu-open');
+            }
+
+            function closeMenu() {
+                menu.classList.remove('mobileMenu--open');
+                document.body.classList.remove('menu-open');
+            }
+
+            openBtn.addEventListener('click', openMenu);
+            closeBtn.addEventListener('click', closeMenu);
+            menu.addEventListener('click', function (event) {
+                if (event.target === menu) {
+                    closeMenu();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

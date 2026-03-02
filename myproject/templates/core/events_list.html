@@ -1,0 +1,39 @@
+﻿{% extends "base.html" %}
+{% block title %}Мероприятия студсовета{% endblock %}
+{% block content %}
+<h1>Мероприятия студсовета</h1>
+<p>
+    <a href="{% url 'core:events_list' %}">Ближайшие анонсы</a> |
+    <a href="{% url 'core:events_list' %}?archive=1">Архив мероприятий</a>
+</p>
+
+<div class="card-grid">
+    {% for event in events %}
+        <article class="card">
+            <h2><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h2>
+            <p>{{ event.short_description }}</p>
+            <p><small>{{ event.start_at|date:"d.m.Y H:i" }} · {{ event.location }}</small></p>
+            {% if event.registration_deadline %}
+                <p><small>Регистрация до: {{ event.registration_deadline|date:"d.m.Y H:i" }}</small></p>
+            {% endif %}
+        </article>
+    {% empty %}
+        {% if archive %}
+            <article class="card">
+                <h2>Архив пока пуст</h2>
+                <p>Здесь появятся прошедшие события студенческого совета.</p>
+            </article>
+        {% else %}
+            <article class="card">
+                <h2>Ближайших мероприятий пока нет</h2>
+                <p>Следите за обновлениями: скоро опубликуем новые анонсы и регистрацию.</p>
+            </article>
+            <article class="card">
+                <h2>Форум «Диалог PRO-Витте»</h2>
+                <p>Открытая площадка для обсуждения инициатив студентов и работы студсовета.</p>
+                <p><small>Пример анонса</small></p>
+            </article>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои обращения | Личный кабинет{% endblock %}
+{% block content %}
+<h1>История обращений</h1>
+<div class="card-grid">
+    {% for item in items %}
+        <article class="card">
+            <h2>{{ item.subject }}</h2>
+            <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
+            <div>{{ item.message|linebreaks }}</div>
+            {% if item.moderation_comment %}
+                <p><strong>Комментарий модератора:</strong> {{ item.moderation_comment }}</p>
+            {% endif %}
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Обращений пока нет</h2>
+            <p>Если у вас есть вопрос или инициатива, отправьте сообщение через форму обратной связи.</p>
+            <p><a href="{% url 'core:feedback' %}">Открыть форму</a></p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}

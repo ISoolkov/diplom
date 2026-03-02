@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+{% block title %}Документы студсовета{% endblock %}
+{% block content %}
+<h1>Документы студсовета</h1>
+<p>Официальные документы и регламенты работы студенческого совета.</p>
+
+<div class="card-grid">
+    {% for document in documents %}
+        <article class="card">
+            <h2>{{ document.title }}</h2>
+            <p>{{ document.description|default:"Описание будет добавлено позже." }}</p>
+            <p><small>Дата публикации: {{ document.published_at|date:"d.m.Y" }}</small></p>
+            <p><a href="{{ document.file_url }}" target="_blank" rel="noopener">Открыть документ</a></p>
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Положение о Студенческом совете</h2>
+            <p>Базовый документ, определяющий цели, задачи и структуру студсовета МУИВ.</p>
+            <p><small>Размер: 612,96 кБ</small></p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}

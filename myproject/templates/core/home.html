@@ -1,0 +1,156 @@
+﻿{% extends "base.html" %}
+{% block title %}Студенческий совет | МУ им. С.Ю. Витте{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Студенческий совет МУ им. С.Ю. Витте</h1>
+    <p>Добровольный орган студенческого самоуправления. Нам важно слышать голос каждого студента и помогать реализовывать инициативы.</p>
+    <p>
+        <a href="{% url 'core:join' %}">Подать заявку на вступление</a>
+        ·
+        <a href="{% url 'core:community' %}">Перейти в соцсеть студсовета</a>
+    </p>
+</section>
+
+<section class="section-panel">
+    <h2>Кто мы</h2>
+    <p>Студенческий совет — не только сильная команда единомышленников, но и большая дружная семья, которая стремится придать яркие краски всему, что окружает студентов университета.</p>
+    <p>Придя в университет, вы сразу узнаете активистов студсовета: их глаза полны желанием развиваться и развивать университетскую среду.</p>
+</section>
+
+<section>
+    <h2>Поможем тебе</h2>
+    <div class="stats-grid">
+        <article class="stat-card">
+            <span class="stat-value">Адаптироваться</span>
+            <p>К студенческой жизни и быстрее влиться в университетское сообщество.</p>
+        </article>
+        <article class="stat-card">
+            <span class="stat-value">Решить вопрос</span>
+            <p>Быстро найти путь решения учебных, организационных и социальных задач.</p>
+        </article>
+        <article class="stat-card">
+            <span class="stat-value">Прокачать навыки</span>
+            <p>Управление проектами, коммуникации, командная работа и лидерство.</p>
+        </article>
+        <article class="stat-card">
+            <span class="stat-value">Реализовать потенциал</span>
+            <p>Запускать инициативы, выступать с идеями и строить портфолио достижений.</p>
+        </article>
+    </div>
+</section>
+
+<section>
+    <h2>Чем мы занимаемся</h2>
+    <div class="info-grid">
+        <article class="info-card">
+            <h3>Культурно-массовые мероприятия</h3>
+            <p>Студенческая жизнь становится яркой и насыщенной благодаря регулярным событиям, конкурсам и форумам.</p>
+        </article>
+        <article class="info-card">
+            <h3>Поддержка инициатив</h3>
+            <p>Если у тебя есть идея — поможем с организацией, продвижением и реализацией проекта.</p>
+        </article>
+        <article class="info-card">
+            <h3>Участие в городских проектах</h3>
+            <p>Вместе со студсоветом можно участвовать в масштабных мероприятиях Москвы и партнерских площадок.</p>
+        </article>
+        <article class="info-card">
+            <h3>Волонтерская деятельность</h3>
+            <p>Добровольческие проекты, социальные акции и полезные инициативы для университета и города.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-panel">
+    <h2>Команда отдела молодежной политики</h2>
+    <div class="card-grid">
+        <article class="card">
+            <h3>Пекарусь Ярослав Олегович</h3>
+            <p><strong>Начальник отдела</strong></p>
+            <p>Координация молодежной политики и воспитательной деятельности.</p>
+        </article>
+        <article class="card">
+            <h3>Фандей Анна Руслановна</h3>
+            <p><strong>Заместитель начальника</strong></p>
+            <p>Сопровождение проектов студенческого самоуправления и коммуникаций.</p>
+        </article>
+    </div>
+</section>
+
+<section>
+    <h2>Новости студсовета</h2>
+    <div class="card-grid">
+        {% for item in latest_news %}
+            <article class="card">
+                <h3><a href="{{ item.get_absolute_url }}">{{ item.title }}</a></h3>
+                <p>{{ item.summary|truncatewords:26 }}</p>
+                <small>{{ item.published_at|date:"d.m.Y H:i" }}</small>
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Запуск платформы студсовета</h3>
+                <p>На портале открыты разделы новостей, мероприятий, FAQ и общения студентов.</p>
+                <small>01.03.2026</small>
+            </article>
+            <article class="card">
+                <h3>Открыт набор в актив</h3>
+                <p>Стартовал прием заявок в студенческий совет для студентов всех факультетов.</p>
+                <small>27.02.2026</small>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section>
+    <h2>Анонсы мероприятий</h2>
+    <div class="card-grid">
+        {% for event in upcoming_events %}
+            <article class="card">
+                <h3><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h3>
+                <p>{{ event.short_description }}</p>
+                <small>{{ event.start_at|date:"d.m.Y H:i" }} · {{ event.location }}</small>
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Форум «Диалог PRO-Витте»</h3>
+                <p>Площадка для открытого диалога студентов, администрации и экспертов.</p>
+                <small>15.03.2026 · Главный корпус</small>
+            </article>
+            <article class="card">
+                <h3>Школа актива студсовета</h3>
+                <p>Обучение проектной работе, командному взаимодействию и лидерству.</p>
+                <small>22.03.2026 · Медиазал</small>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-panel">
+    <h2>Социальная сеть студсовета</h2>
+    <p>Внутри портала работает открытая лента общения: задавайте вопросы, обсуждайте инициативы и объединяйтесь в команды.</p>
+    <div class="card-grid">
+        {% for post in community_posts %}
+            <article class="card">
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.body|truncatewords:30 }}</p>
+                <small>Автор: {{ post.author.get_full_name|default:post.author.username }}</small>
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Идеи для весеннего фестиваля</h3>
+                <p>Открыт сбор предложений по программе, площадкам и форматам студенческого фестиваля.</p>
+                <small>Опубликовано в сообществе</small>
+            </article>
+        {% endfor %}
+    </div>
+    <p><a href="{% url 'core:community' %}">Перейти в ленту сообщества</a></p>
+</section>
+
+<section class="cta-band">
+    <div>
+        <h2>Мы ждем тебя в нашей дружной семье</h2>
+        <p>Быть в рядах студсовета — возможность получить новые компетенции, опыт и сильное окружение.</p>
+    </div>
+    <p><a href="{% url 'core:join' %}">Присоединиться</a></p>
+</section>
+{% endblock %}

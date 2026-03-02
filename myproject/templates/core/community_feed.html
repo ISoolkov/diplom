@@ -1,0 +1,80 @@
+﻿{% extends "base.html" %}
+{% block title %}Социальная сеть студсовета{% endblock %}
+{% block content %}
+<h1>Социальная сеть студсовета</h1>
+<p>Пространство для общения студентов и студсоветов: обсуждения, идеи, вопросы и совместные инициативы.</p>
+
+<div class="community-layout">
+    <section>
+        {% if user.is_authenticated %}
+            <article class="form">
+                <h2>Новая публикация</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ post_form.as_p }}
+                    <button type="submit" name="create_post" value="1">Опубликовать</button>
+                </form>
+            </article>
+        {% else %}
+            <article class="card">
+                <h2>Только для авторизованных</h2>
+                <p>Чтобы публиковать и комментировать, <a href="{% url 'login' %}?next={{ request.path }}">войдите в систему</a>.</p>
+            </article>
+        {% endif %}
+
+        {% for post in posts %}
+            <article class="post-card" id="post-{{ post.id }}">
+                <h3>{{ post.title }} {% if post.is_pinned %}<span class="status-badge">Закреплено</span>{% endif %}</h3>
+                <p class="post-meta">{{ post.author.get_full_name|default:post.author.username }} · {{ post.created_at|date:"d.m.Y H:i" }}</p>
+                <p>{{ post.body|linebreaks }}</p>
+
+                <div class="comment-list">
+                    {% for comment in post.comments.all %}
+                        {% if comment.is_published %}
+                            <article class="comment-card">
+                                <p class="comment-meta">{{ comment.author.get_full_name|default:comment.author.username }} · {{ comment.created_at|date:"d.m.Y H:i" }}</p>
+                                <p>{{ comment.body|linebreaks }}</p>
+                            </article>
+                        {% endif %}
+                    {% empty %}
+                        <p class="field-note">Пока нет комментариев.</p>
+                    {% endfor %}
+                </div>
+
+                {% if user.is_authenticated %}
+                    <form method="post" class="form" style="margin-top: .8rem;">
+                        {% csrf_token %}
+                        <input type="hidden" name="post_id" value="{{ post.id }}">
+                        {{ comment_form.as_p }}
+                        <button type="submit" name="add_comment" value="1">Комментировать</button>
+                    </form>
+                {% endif %}
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Пока нет публикаций</h3>
+                <p>Станьте первым, кто начнет обсуждение в студенческом сообществе.</p>
+            </article>
+        {% endfor %}
+    </section>
+
+    <aside>
+        <article class="section-panel">
+            <h2>Правила общения</h2>
+            <ul class="info-list">
+                <li>Уважительный тон и конструктивный диалог.</li>
+                <li>Публикуйте только проверенную и полезную информацию.</li>
+                <li>Идеи и предложения оформляйте максимально конкретно.</li>
+                <li>Для официальных обращений используйте форму обратной связи.</li>
+            </ul>
+        </article>
+
+        <article class="section-panel">
+            <h2>Быстрые действия</h2>
+            <p><a href="{% url 'core:join' %}">Подать заявку в студсовет</a></p>
+            <p><a href="{% url 'core:events_list' %}">Смотреть анонсы мероприятий</a></p>
+            <p><a href="{% url 'core:faq' %}">FAQ студсовета</a></p>
+        </article>
+    </aside>
+</div>
+{% endblock %}

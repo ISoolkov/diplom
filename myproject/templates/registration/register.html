@@ -1,0 +1,11 @@
+﻿{% extends "base.html" %}
+{% block title %}Регистрация | Студсовет МУИВ{% endblock %}
+{% block content %}
+<h1>Регистрация</h1>
+<p>Создайте аккаунт, чтобы участвовать в обсуждениях, подавать заявки на мероприятия и вступление в студсовет.</p>
+<form method="post" class="form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Создать аккаунт</button>
+</form>
+{% endblock %}

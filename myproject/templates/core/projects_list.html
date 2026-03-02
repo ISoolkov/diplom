@@ -1,0 +1,21 @@
+﻿{% extends "base.html" %}
+{% block title %}Проекты студсовета{% endblock %}
+{% block content %}
+<h1>Проекты и направления студсовета</h1>
+<p>Инициативы студентов, которые развивают университетскую среду, волонтерство и молодежную политику.</p>
+
+<div class="card-grid">
+    {% for project in projects %}
+        <article class="card">
+            <h2>{{ project.title }}</h2>
+            <p>{{ project.description }}</p>
+            <p><small>Статус: {{ project.get_status_display }}</small></p>
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Список проектов обновляется</h2>
+            <p>Добавьте проект через админ-панель, и он сразу появится на странице.</p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}

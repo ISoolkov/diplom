@@ -1,0 +1,21 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои мероприятия | Личный кабинет{% endblock %}
+{% block content %}
+<h1>Мои заявки на мероприятия</h1>
+<div class="card-grid">
+    {% for item in items %}
+        <article class="card">
+            <h2>{{ item.event.title }}</h2>
+            <p><strong>Дата:</strong> {{ item.event.start_at|date:"d.m.Y H:i" }}</p>
+            <p><strong>Место:</strong> {{ item.event.location }}</p>
+            <p><strong>Комментарий:</strong> {{ item.comment|default:"-" }}</p>
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Заявок пока нет</h2>
+            <p>Перейдите в раздел мероприятий и зарегистрируйтесь на интересующие события студсовета.</p>
+            <p><a href="{% url 'core:events_list' %}">К мероприятиям</a></p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}

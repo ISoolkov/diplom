@@ -1,0 +1,17 @@
+﻿{% extends "base.html" %}
+{% block title %}Профиль | Личный кабинет{% endblock %}
+{% block content %}
+<h1>Редактирование профиля</h1>
+<form method="post" class="form">
+    {% csrf_token %}
+    <fieldset>
+        <legend>Основные данные</legend>
+        {{ user_form.as_p }}
+    </fieldset>
+    <fieldset>
+        <legend>Данные студента</legend>
+        {{ profile_form.as_p }}
+    </fieldset>
+    <button type="submit">Сохранить изменения</button>
+</form>
+{% endblock %}

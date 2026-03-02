@@ -1,0 +1,38 @@
+﻿{% extends "base.html" %}
+{% block title %}Заявка на вступление в студсовет{% endblock %}
+{% block content %}
+<h1>Заявка для вступления в студсовет</h1>
+<p>Заполните форму, и команда студсовета свяжется с вами для следующего этапа.</p>
+
+<div class="community-layout">
+    <section>
+        <article class="form">
+            <h2>Анкета кандидата</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Отправить заявку</button>
+            </form>
+        </article>
+    </section>
+
+    <aside>
+        <article class="section-panel">
+            <h2>Что дальше?</h2>
+            <ul class="info-list">
+                <li>Проверка анкеты и связи с кандидатом.</li>
+                <li>Короткое знакомство с командой студсовета.</li>
+                <li>Выбор направления деятельности.</li>
+                <li>Подключение к проектам и мероприятиям.</li>
+            </ul>
+        </article>
+
+        <article class="section-panel">
+            <h2>Контакты</h2>
+            <p><strong>Телефон студсовета:</strong><br>+7 (495) 783-68-48, доб. 5147</p>
+            <p><strong>Email:</strong><br>info@muiv.ru</p>
+            <p><strong>Адрес:</strong><br>Москва, 2-й Кожуховский пр-д, 12, стр.1, каб. 217</p>
+        </article>
+    </aside>
+</div>
+{% endblock %}

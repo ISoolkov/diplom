@@ -1,0 +1,11 @@
+﻿{% extends "base.html" %}
+{% block title %}Вход | Студсовет МУИВ{% endblock %}
+{% block content %}
+<h1>Вход в личный кабинет</h1>
+<form method="post" class="form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Войти</button>
+</form>
+<p>Нет аккаунта? <a href="{% url 'core:register' %}">Зарегистрироваться</a>.</p>
+{% endblock %}
