@@ -9,6 +9,9 @@
         </a>
     {% endfor %}
 </nav>
+<section class="section-panel">
+    <p>Файлы пользователей. Дата загрузки отображается в едином формате: <code>дд.мм.гггг чч:мм</code>.</p>
+</section>
 
 <div class="table-wrap">
     <table class="admin-table">
@@ -38,7 +41,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="file_id" value="{{ item.id }}">
-                            <button type="submit">Удалить</button>
+                            <button type="submit">Удалить файл</button>
                         </form>
                     </td>
                 </tr>

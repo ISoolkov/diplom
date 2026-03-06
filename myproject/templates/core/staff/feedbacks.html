@@ -9,6 +9,9 @@
         </a>
     {% endfor %}
 </nav>
+<section class="section-panel">
+    <p>Изменяйте статус и комментарий модератора, затем нажмите «Сохранить изменения».</p>
+</section>
 
 <div class="table-wrap">
     <table class="admin-table">
@@ -44,7 +47,7 @@
                                 {% endfor %}
                             </select>
                             <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
-                            <button type="submit">Сохранить</button>
+                            <button type="submit">Сохранить изменения</button>
                         </form>
                     </td>
                 </tr>

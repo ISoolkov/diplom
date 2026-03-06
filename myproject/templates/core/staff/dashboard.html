@@ -36,6 +36,7 @@
                 <h3>{{ item.subject }}</h3>
                 <p>{{ item.name }} ({{ item.email }})</p>
                 <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
+                <p><small>{{ item.created_at|date:"d.m.Y H:i" }}</small></p>
                 <p>{{ item.message|truncatewords:20 }}</p>
             </article>
         {% empty %}
@@ -52,6 +53,7 @@
                 <h3>{{ item.full_name }}</h3>
                 <p>{{ item.get_faculty_display }}</p>
                 <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
+                <p><small>{{ item.created_at|date:"d.m.Y H:i" }}</small></p>
                 <p>{{ item.motivation|truncatewords:20 }}</p>
             </article>
         {% empty %}

@@ -9,6 +9,9 @@
         </a>
     {% endfor %}
 </nav>
+<section class="section-panel">
+    <p>Проверьте анкету, выберите статус и при необходимости оставьте комментарий.</p>
+</section>
 
 <div class="table-wrap">
     <table class="admin-table">
@@ -49,7 +52,7 @@
                                 {% endfor %}
                             </select>
                             <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
-                            <button type="submit">Сохранить</button>
+                            <button type="submit">Сохранить изменения</button>
                         </form>
                     </td>
                 </tr>
