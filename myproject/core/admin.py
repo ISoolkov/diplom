@@ -12,6 +12,7 @@ from .models import (
     News,
     Project,
     StudentCouncilMember,
+    UserFile,
     UserProfile,
 )
 
@@ -73,8 +74,16 @@ class EventRegistrationAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "faculty", "course", "telegram")
+    list_display = ("user", "role", "faculty", "course", "telegram")
+    list_filter = ("role",)
     search_fields = ("user__username", "faculty", "telegram")
+
+
+@admin.register(UserFile)
+class UserFileAdmin(admin.ModelAdmin):
+    list_display = ("title", "owner", "is_private", "created_at")
+    list_filter = ("is_private", "created_at")
+    search_fields = ("title", "description", "owner__username")
 
 
 @admin.register(CouncilJoinApplication)

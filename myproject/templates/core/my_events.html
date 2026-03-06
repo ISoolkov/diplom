@@ -2,6 +2,13 @@
 {% block title %}Мои мероприятия | Личный кабинет{% endblock %}
 {% block content %}
 <h1>Мои заявки на мероприятия</h1>
+<nav class="page-nav">
+    {% for item in cabinet_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
 <div class="card-grid">
     {% for item in items %}
         <article class="card">

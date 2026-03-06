@@ -163,7 +163,17 @@ class FeedbackMessage(TimestampedModel):
 
 
 class UserProfile(models.Model):
+    ROLE_ADMIN = "admin"
+    ROLE_MANAGER = "manager"
+    ROLE_STUDENT = "student"
+    ROLE_CHOICES = (
+        (ROLE_ADMIN, "Администратор"),
+        (ROLE_MANAGER, "Менеджер"),
+        (ROLE_STUDENT, "Студент"),
+    )
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_STUDENT)
     photo_url = models.URLField(blank=True)
     faculty = models.CharField(max_length=120, blank=True)
     course = models.CharField(max_length=20, blank=True)
@@ -171,6 +181,42 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"Профиль {self.user.username}"
+
+    @property
+    def is_admin(self):
+        return self.role == self.ROLE_ADMIN
+
+    @property
+    def is_manager(self):
+        return self.role == self.ROLE_MANAGER
+
+
+def user_file_upload_path(instance, filename):
+    return f"user_files/user_{instance.owner_id}/{filename}"
+
+
+class UserFile(TimestampedModel):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="uploaded_files",
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    file = models.FileField(upload_to=user_file_upload_path)
+    is_private = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Файл пользователя"
+        verbose_name_plural = "Файлы пользователей"
+
+    def __str__(self):
+        return f"{self.owner.username}: {self.title}"
+
+    @property
+    def filename(self):
+        return self.file.name.rsplit("/", 1)[-1]
 
 
 class CouncilJoinApplication(TimestampedModel):

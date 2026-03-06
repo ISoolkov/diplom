@@ -1,0 +1,35 @@
+﻿{% extends "base.html" %}
+{% block title %}Экспорт отчетов{% endblock %}
+{% block content %}
+<h1>Экспорт отчетов</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<section class="section-panel">
+    <p>Дата формирования раздела: {{ generated_at|date:"d.m.Y H:i" }}</p>
+    <p>Мероприятий в базе: <strong>{{ events_total }}</strong></p>
+    <p>Обращений в базе: <strong>{{ feedbacks_total }}</strong></p>
+</section>
+
+<section>
+    <div class="card-grid">
+        <article class="card">
+            <h2>Отчет по мероприятиям (.docx)</h2>
+            <p>Выгружает список мероприятий со сроками и местом проведения.</p>
+            <p><a href="{% url 'core:export_events_docx' %}">Скачать DOCX</a></p>
+        </article>
+
+        <article class="card">
+            <h2>Отчет по обращениям (.xlsx)</h2>
+            <p>Выгружает таблицу по обращениям и статусам обработки.</p>
+            <p><a href="{% url 'core:export_feedback_xlsx' %}">Скачать XLSX</a></p>
+        </article>
+    </div>
+</section>
+{% endblock %}
+

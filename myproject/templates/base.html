@@ -42,6 +42,11 @@
                                 <span class="icon-header icon-header--lk"></span>
                                 <span>Личный кабинет</span>
                             </a>
+                            {% if is_staff_admin %}
+                                <a class="header-btn left-separator" href="{% url 'core:staff_dashboard' %}">
+                                    <span>Админ-панель</span>
+                                </a>
+                            {% endif %}
                             <form method="post" action="{% url 'logout' %}" class="inline-form">
                                 {% csrf_token %}
                                 <button type="submit" class="header-btn link-button left-separator">
@@ -64,13 +69,11 @@
 
                 <div class="header-bottom-row">
                     <nav class="top-nav">
-                        <a href="{% url 'core:home' %}">Главная</a>
-                        <a href="{% url 'core:council' %}">Студсовет</a>
-                        <a href="{% url 'core:news_list' %}">Новости</a>
-                        <a href="{% url 'core:events_list' %}">Мероприятия</a>
-                        <a href="{% url 'core:community' %}">Соцсеть</a>
-                        <a href="{% url 'core:faq' %}">FAQ</a>
-                        <a href="{% url 'core:documents' %}">Документы</a>
+                        {% for item in main_menu %}
+                            <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+                                {{ item.label }}
+                            </a>
+                        {% endfor %}
                     </nav>
 
                     <div class="social-header">
@@ -101,15 +104,18 @@
                 <button type="button" class="mobileMenu-close" id="mobileMenuClose" aria-label="Закрыть меню"></button>
             </div>
             <nav class="mobileMenu-body">
-                <a href="{% url 'core:home' %}">Главная</a>
-                <a href="{% url 'core:council' %}">Студенческий совет</a>
-                <a href="{% url 'core:news_list' %}">Новости студсовета</a>
-                <a href="{% url 'core:events_list' %}">Мероприятия</a>
-                <a href="{% url 'core:community' %}">Социальная сеть</a>
-                <a href="{% url 'core:join' %}">Заявка на вступление</a>
-                <a href="{% url 'core:faq' %}">FAQ студсовета</a>
-                <a href="{% url 'core:documents' %}">Документы</a>
-                <a href="{% url 'core:feedback' %}">Контакты и обращения</a>
+                {% for item in main_menu %}
+                    <a href="{{ item.url }}">{{ item.label }}</a>
+                {% endfor %}
+                {% if user.is_authenticated %}
+                    <a href="{% url 'core:cabinet' %}">Личный кабинет</a>
+                    {% if is_staff_admin %}
+                        <a href="{% url 'core:staff_dashboard' %}">Админ-панель</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}">Вход</a>
+                    <a href="{% url 'core:register' %}">Регистрация</a>
+                {% endif %}
             </nav>
         </div>
     </header>
@@ -123,6 +129,19 @@
                     {% endfor %}
                 </ul>
             {% endif %}
+            <nav class="breadcrumbs" aria-label="Хлебные крошки">
+                <ol>
+                    {% for crumb in breadcrumbs %}
+                        <li>
+                            {% if crumb.url %}
+                                <a href="{{ crumb.url }}">{{ crumb.title }}</a>
+                            {% else %}
+                                <span>{{ crumb.title }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ol>
+            </nav>
             {% block content %}{% endblock %}
         </div>
     </main>
@@ -204,6 +223,7 @@
 
                 <div class="s16 footer_box">
                     <span class="footer_copyright">2026 © МУИВ. Все права защищены.</span>
+                    <span class="footer_author">Автор ВКР: {{ author_full_name }}</span>
                 </div>
                 <div class="s20 footer_box"></div>
             </div>

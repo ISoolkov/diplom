@@ -1,0 +1,31 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои публикации{% endblock %}
+{% block content %}
+<h1>Мои публикации в сообществе</h1>
+<nav class="page-nav">
+    {% for item in cabinet_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<div class="card-grid">
+    {% for item in items %}
+        <article class="card">
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.body|truncatewords:45 }}</p>
+            <p><strong>Комментарии:</strong> {{ item.comments.count }}</p>
+            <p><small>Создано: {{ item.created_at|date:"d.m.Y H:i" }}</small></p>
+            <p><a href="{% url 'core:community' %}#post-{{ item.id }}">Открыть в ленте</a></p>
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Публикаций пока нет</h2>
+            <p>Создайте первую публикацию в социальной сети студсовета.</p>
+            <p><a href="{% url 'core:community' %}">Перейти в сообщество</a></p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}
+

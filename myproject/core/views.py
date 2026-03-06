@@ -1,7 +1,11 @@
-﻿from django.contrib import messages
-from django.contrib.auth import login
+﻿from io import BytesIO
+
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Count
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -14,6 +18,7 @@ from .forms import (
     FeedbackForm,
     ProfileUpdateForm,
     SignUpForm,
+    UserFileUploadForm,
     UserUpdateForm,
 )
 from .models import (
@@ -27,8 +32,12 @@ from .models import (
     News,
     Project,
     StudentCouncilMember,
+    UserFile,
     UserProfile,
 )
+from .permissions import has_any_role, role_required
+
+User = get_user_model()
 
 
 def home(request):
@@ -211,6 +220,9 @@ def register(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = UserProfile.ROLE_STUDENT
+            profile.save(update_fields=["role"])
             login(request, user)
             messages.success(request, "Регистрация выполнена успешно.")
             return redirect("core:cabinet")
@@ -225,6 +237,7 @@ def cabinet(request):
     registrations = EventRegistration.objects.filter(user=request.user).select_related("event")[:5]
     join_requests = CouncilJoinApplication.objects.filter(user=request.user)[:5]
     my_posts = CommunityPost.objects.filter(author=request.user)[:5]
+    my_files = UserFile.objects.filter(owner=request.user)[:5]
     return render(
         request,
         "core/cabinet.html",
@@ -233,6 +246,7 @@ def cabinet(request):
             "registrations": registrations,
             "join_requests": join_requests,
             "my_posts": my_posts,
+            "my_files": my_files,
         },
     )
 
@@ -268,3 +282,215 @@ def my_feedbacks(request):
 def my_events(request):
     items = EventRegistration.objects.filter(user=request.user).select_related("event")
     return render(request, "core/my_events.html", {"items": items})
+
+
+@login_required
+def my_join_requests(request):
+    items = CouncilJoinApplication.objects.filter(user=request.user)
+    return render(request, "core/my_join_requests.html", {"items": items})
+
+
+@login_required
+def my_posts(request):
+    items = CommunityPost.objects.filter(author=request.user).prefetch_related("comments")
+    return render(request, "core/my_posts.html", {"items": items})
+
+
+@login_required
+def my_files(request):
+    if request.method == "POST":
+        form = UserFileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.owner = request.user
+            item.save()
+            messages.success(request, "Файл загружен в хранилище.")
+            return redirect("core:my_files")
+    else:
+        form = UserFileUploadForm()
+
+    items = UserFile.objects.filter(owner=request.user)
+    return render(request, "core/my_files.html", {"items": items, "form": form})
+
+
+@login_required
+def download_user_file(request, pk):
+    item = get_object_or_404(UserFile, pk=pk)
+    is_owner = item.owner_id == request.user.id
+    is_admin = has_any_role(request.user, UserProfile.ROLE_ADMIN)
+    if not is_owner and not is_admin:
+        messages.error(request, "Недостаточно прав для скачивания этого файла.")
+        return redirect("core:my_files")
+
+    return FileResponse(item.file.open("rb"), as_attachment=True, filename=item.filename)
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_dashboard(request):
+    role_rows = UserProfile.objects.values("role").annotate(total=Count("id")).order_by("role")
+    role_stats = {row["role"]: row["total"] for row in role_rows}
+
+    context = {
+        "total_users": User.objects.count(),
+        "total_news": News.objects.count(),
+        "total_events": Event.objects.count(),
+        "total_feedbacks": FeedbackMessage.objects.count(),
+        "total_join_requests": CouncilJoinApplication.objects.count(),
+        "total_files": UserFile.objects.count(),
+        "role_stats": {
+            "admin": role_stats.get(UserProfile.ROLE_ADMIN, 0),
+            "manager": role_stats.get(UserProfile.ROLE_MANAGER, 0),
+            "student": role_stats.get(UserProfile.ROLE_STUDENT, 0),
+        },
+        "latest_feedbacks": FeedbackMessage.objects.select_related("user")[:10],
+        "latest_join_requests": CouncilJoinApplication.objects.select_related("user")[:10],
+    }
+    return render(request, "core/staff/dashboard.html", context)
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_feedbacks(request):
+    if request.method == "POST":
+        item = get_object_or_404(FeedbackMessage, pk=request.POST.get("feedback_id"))
+        new_status = request.POST.get("status", "")
+        moderation_comment = request.POST.get("moderation_comment", "").strip()
+        valid_statuses = {choice[0] for choice in FeedbackMessage.STATUS_CHOICES}
+
+        if new_status in valid_statuses:
+            item.status = new_status
+            item.moderation_comment = moderation_comment
+            item.save(update_fields=["status", "moderation_comment", "updated_at"])
+            messages.success(request, "Статус обращения обновлен.")
+        else:
+            messages.error(request, "Передан некорректный статус обращения.")
+        return redirect("core:staff_feedbacks")
+
+    items = FeedbackMessage.objects.select_related("user")
+    return render(request, "core/staff/feedbacks.html", {"items": items})
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_join_requests(request):
+    if request.method == "POST":
+        item = get_object_or_404(CouncilJoinApplication, pk=request.POST.get("join_id"))
+        new_status = request.POST.get("status", "")
+        moderation_comment = request.POST.get("moderation_comment", "").strip()
+        valid_statuses = {choice[0] for choice in CouncilJoinApplication.STATUS_CHOICES}
+
+        if new_status in valid_statuses:
+            item.status = new_status
+            item.moderation_comment = moderation_comment
+            item.save(update_fields=["status", "moderation_comment", "updated_at"])
+            messages.success(request, "Статус заявки обновлен.")
+        else:
+            messages.error(request, "Передан некорректный статус заявки.")
+        return redirect("core:staff_join_requests")
+
+    items = CouncilJoinApplication.objects.select_related("user")
+    return render(request, "core/staff/join_requests.html", {"items": items})
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_users(request):
+    if request.method == "POST":
+        profile = get_object_or_404(UserProfile, pk=request.POST.get("profile_id"))
+        new_role = request.POST.get("role", "")
+        valid_roles = {choice[0] for choice in UserProfile.ROLE_CHOICES}
+
+        if new_role in valid_roles:
+            profile.role = new_role
+            profile.save(update_fields=["role"])
+            messages.success(request, f"Роль пользователя {profile.user.username} обновлена.")
+        else:
+            messages.error(request, "Передано недопустимое значение роли.")
+        return redirect("core:staff_users")
+
+    profiles = UserProfile.objects.select_related("user").order_by("user__username")
+    return render(request, "core/staff/users.html", {"profiles": profiles})
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_files(request):
+    if request.method == "POST" and request.POST.get("action") == "delete":
+        item = get_object_or_404(UserFile, pk=request.POST.get("file_id"))
+        item.file.delete(save=False)
+        item.delete()
+        messages.success(request, "Файл удален из хранилища.")
+        return redirect("core:staff_files")
+
+    items = UserFile.objects.select_related("owner", "owner__profile")
+    return render(request, "core/staff/files.html", {"items": items})
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_reports(request):
+    context = {
+        "events_total": Event.objects.count(),
+        "feedbacks_total": FeedbackMessage.objects.count(),
+        "generated_at": timezone.now(),
+    }
+    return render(request, "core/staff/reports.html", context)
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def export_events_docx(request):
+    try:
+        from docx import Document as DocxDocument
+    except ImportError:
+        messages.error(request, "Для экспорта DOCX установите библиотеку python-docx.")
+        return redirect("core:staff_reports")
+
+    events = Event.objects.order_by("start_at")
+
+    doc = DocxDocument()
+    doc.add_heading("Отчет по мероприятиям студсовета", level=1)
+    doc.add_paragraph(f"Дата формирования: {timezone.localtime(timezone.now()).strftime('%d.%m.%Y %H:%M')}")
+
+    for event in events:
+        paragraph = doc.add_paragraph(style="List Number")
+        paragraph.add_run(event.title).bold = True
+        paragraph.add_run(f"\nДата: {timezone.localtime(event.start_at).strftime('%d.%m.%Y %H:%M')}")
+        paragraph.add_run(f"\nМесто: {event.location}")
+        paragraph.add_run(f"\nОписание: {event.short_description}")
+
+    output = BytesIO()
+    doc.save(output)
+    output.seek(0)
+
+    filename = f"events_report_{timezone.localdate().isoformat()}.docx"
+    return FileResponse(output, as_attachment=True, filename=filename)
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def export_feedback_xlsx(request):
+    try:
+        from openpyxl import Workbook
+    except ImportError:
+        messages.error(request, "Для экспорта XLSX установите библиотеку openpyxl.")
+        return redirect("core:staff_reports")
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Feedback"
+    sheet.append(["ID", "Дата", "Имя", "Email", "Тема", "Статус", "Комментарий модератора"])
+
+    for item in FeedbackMessage.objects.order_by("-created_at"):
+        sheet.append(
+            [
+                item.id,
+                timezone.localtime(item.created_at).strftime("%d.%m.%Y %H:%M"),
+                item.name,
+                item.email,
+                item.subject,
+                item.get_status_display(),
+                item.moderation_comment,
+            ]
+        )
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    filename = f"feedback_report_{timezone.localdate().isoformat()}.xlsx"
+    return FileResponse(output, as_attachment=True, filename=filename)
+

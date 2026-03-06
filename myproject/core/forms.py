@@ -8,6 +8,7 @@ from .models import (
     CouncilJoinApplication,
     EventRegistration,
     FeedbackMessage,
+    UserFile,
     UserProfile,
 )
 
@@ -137,4 +138,19 @@ class CommunityCommentForm(forms.ModelForm):
         }
         widgets = {
             "body": forms.Textarea(attrs={"rows": 2, "placeholder": "Ваш комментарий"}),
+        }
+
+
+class UserFileUploadForm(forms.ModelForm):
+    class Meta:
+        model = UserFile
+        fields = ("title", "description", "file", "is_private")
+        labels = {
+            "title": "Название файла",
+            "description": "Описание",
+            "file": "Файл",
+            "is_private": "Доступен только мне",
+        }
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
         }

@@ -2,12 +2,13 @@
 {% block title %}Личный кабинет студсовета{% endblock %}
 {% block content %}
 <h1>Личный кабинет</h1>
-<p>
-    <a href="{% url 'core:profile_edit' %}">Редактировать профиль</a> |
-    <a href="{% url 'core:my_events' %}">Мои заявки на мероприятия</a> |
-    <a href="{% url 'core:my_feedbacks' %}">Мои обращения</a> |
-    <a href="{% url 'core:community' %}">Соцсеть студсовета</a>
-</p>
+<nav class="page-nav">
+    {% for item in cabinet_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
 
 <section>
     <h2>Заявки в студсовет</h2>
@@ -62,6 +63,25 @@
             <article class="card">
                 <h3>Пока нет обращений</h3>
                 <p>Если нужен ответ от команды студсовета, отправьте обращение.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section>
+    <h2>Файлы в личном хранилище</h2>
+    <div class="card-grid">
+        {% for item in my_files %}
+            <article class="card">
+                <h3>{{ item.title }}</h3>
+                <p><small>Загружено: {{ item.created_at|date:"d.m.Y H:i" }}</small></p>
+                <p><a href="{% url 'core:download_user_file' item.pk %}">Скачать файл</a></p>
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Файлов пока нет</h3>
+                <p>Загрузите документы в личное хранилище.</p>
+                <p><a href="{% url 'core:my_files' %}">Открыть хранилище</a></p>
             </article>
         {% endfor %}
     </div>

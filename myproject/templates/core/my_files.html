@@ -1,0 +1,42 @@
+﻿{% extends "base.html" %}
+{% block title %}Мои файлы{% endblock %}
+{% block content %}
+<h1>Личное файловое хранилище</h1>
+<nav class="page-nav">
+    {% for item in cabinet_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<section class="form">
+    <h2>Загрузка файла</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Загрузить</button>
+    </form>
+</section>
+
+<section>
+    <h2>Мои файлы</h2>
+    <div class="card-grid">
+        {% for item in items %}
+            <article class="card">
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.description|default:"Описание не указано." }}</p>
+                <p><strong>Доступ:</strong> {% if item.is_private %}Только владелец{% else %}Расширенный{% endif %}</p>
+                <p><small>Загружено: {{ item.created_at|date:"d.m.Y H:i" }}</small></p>
+                <p><a href="{% url 'core:download_user_file' item.pk %}">Скачать {{ item.filename }}</a></p>
+            </article>
+        {% empty %}
+            <article class="card">
+                <h3>Файлов пока нет</h3>
+                <p>Загрузите первый файл для личного кабинета.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,65 @@
+﻿{% extends "base.html" %}
+{% block title %}Модерация заявок{% endblock %}
+{% block content %}
+<h1>Модерация заявок в студсовет</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<div class="table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Кандидат</th>
+                <th>Анкета</th>
+                <th>Модерация</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <strong>{{ item.full_name }}</strong><br>
+                        <small>{{ item.email }}</small><br>
+                        <small>{{ item.phone }}</small>
+                    </td>
+                    <td>
+                        <p><strong>Факультет:</strong> {{ item.get_faculty_display }}</p>
+                        <p><strong>Курс:</strong> {{ item.course|default:"-" }}</p>
+                        <p><strong>Мотивация:</strong> {{ item.motivation|linebreaksbr }}</p>
+                        {% if item.experience %}
+                            <p><strong>Опыт:</strong> {{ item.experience|linebreaksbr }}</p>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" class="inline-controls">
+                            {% csrf_token %}
+                            <input type="hidden" name="join_id" value="{{ item.id }}">
+                            <select name="status">
+                                {% for value, label in item.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
+                            <button type="submit">Сохранить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">Заявок пока нет.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

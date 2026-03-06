@@ -1,0 +1,56 @@
+﻿{% extends "base.html" %}
+{% block title %}Пользователи и роли{% endblock %}
+{% block content %}
+<h1>Пользователи и роли доступа</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<div class="table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Контакты</th>
+                <th>Текущая роль</th>
+                <th>Изменить роль</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+                <tr>
+                    <td>{{ profile.user.id }}</td>
+                    <td>{{ profile.user.username }}</td>
+                    <td>
+                        {{ profile.user.get_full_name|default:"-" }}<br>
+                        <small>{{ profile.user.email|default:"email не указан" }}</small>
+                    </td>
+                    <td>{{ profile.get_role_display }}</td>
+                    <td>
+                        <form method="post" class="inline-controls">
+                            {% csrf_token %}
+                            <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                            <select name="role">
+                                {% for value, label in profile.ROLE_CHOICES %}
+                                    <option value="{{ value }}" {% if profile.role == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit">Сохранить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">Пользователей нет.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

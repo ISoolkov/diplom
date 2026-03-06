@@ -1,0 +1,60 @@
+﻿{% extends "base.html" %}
+{% block title %}Модерация обращений{% endblock %}
+{% block content %}
+<h1>Модерация обращений</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<div class="table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Пользователь</th>
+                <th>Тема и текст</th>
+                <th>Модерация</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {{ item.name }}<br>
+                        <small>{{ item.email }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ item.subject }}</strong>
+                        <p>{{ item.message|linebreaksbr }}</p>
+                    </td>
+                    <td>
+                        <form method="post" class="inline-controls">
+                            {% csrf_token %}
+                            <input type="hidden" name="feedback_id" value="{{ item.id }}">
+                            <select name="status">
+                                {% for value, label in item.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
+                            <button type="submit">Сохранить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">Обращений пока нет.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

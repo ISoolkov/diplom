@@ -1,0 +1,63 @@
+﻿{% extends "base.html" %}
+{% block title %}Админ-панель{% endblock %}
+{% block content %}
+<h1>Админ-панель студсовета</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<section>
+    <div class="stats-grid">
+        <article class="stat-card"><span class="stat-value">{{ total_users }}</span><p>Пользователи</p></article>
+        <article class="stat-card"><span class="stat-value">{{ total_news }}</span><p>Новости</p></article>
+        <article class="stat-card"><span class="stat-value">{{ total_events }}</span><p>Мероприятия</p></article>
+        <article class="stat-card"><span class="stat-value">{{ total_feedbacks }}</span><p>Обращения</p></article>
+        <article class="stat-card"><span class="stat-value">{{ total_join_requests }}</span><p>Заявки в студсовет</p></article>
+        <article class="stat-card"><span class="stat-value">{{ total_files }}</span><p>Файлы</p></article>
+    </div>
+</section>
+
+<section class="section-panel">
+    <h2>Роли пользователей</h2>
+    <p>Администраторов: <strong>{{ role_stats.admin }}</strong></p>
+    <p>Менеджеров: <strong>{{ role_stats.manager }}</strong></p>
+    <p>Студентов: <strong>{{ role_stats.student }}</strong></p>
+</section>
+
+<section>
+    <h2>Последние обращения</h2>
+    <div class="card-grid">
+        {% for item in latest_feedbacks %}
+            <article class="card">
+                <h3>{{ item.subject }}</h3>
+                <p>{{ item.name }} ({{ item.email }})</p>
+                <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
+                <p>{{ item.message|truncatewords:20 }}</p>
+            </article>
+        {% empty %}
+            <article class="card"><p>Обращений пока нет.</p></article>
+        {% endfor %}
+    </div>
+</section>
+
+<section>
+    <h2>Последние заявки на вступление</h2>
+    <div class="card-grid">
+        {% for item in latest_join_requests %}
+            <article class="card">
+                <h3>{{ item.full_name }}</h3>
+                <p>{{ item.get_faculty_display }}</p>
+                <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
+                <p>{{ item.motivation|truncatewords:20 }}</p>
+            </article>
+        {% empty %}
+            <article class="card"><p>Заявок пока нет.</p></article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+

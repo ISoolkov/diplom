@@ -4,7 +4,16 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from core.models import CommunityPost, Document, Event, FAQ, News, Project, StudentCouncilMember
+from core.models import (
+    CommunityPost,
+    Document,
+    Event,
+    FAQ,
+    News,
+    Project,
+    StudentCouncilMember,
+    UserProfile,
+)
 
 User = get_user_model()
 
@@ -12,8 +21,77 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Создает тестовые данные для портала студенческого совета МУИВ."
 
+    def _ensure_user(self, *, username, password, first_name, last_name, email, role, is_superuser=False):
+        user, created = User.objects.get_or_create(
+            username=username,
+            defaults={
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "is_staff": is_superuser,
+                "is_superuser": is_superuser,
+            },
+        )
+
+        changed = created
+        if user.first_name != first_name:
+            user.first_name = first_name
+            changed = True
+        if user.last_name != last_name:
+            user.last_name = last_name
+            changed = True
+        if user.email != email:
+            user.email = email
+            changed = True
+        if user.is_staff != is_superuser:
+            user.is_staff = is_superuser
+            changed = True
+        if user.is_superuser != is_superuser:
+            user.is_superuser = is_superuser
+            changed = True
+
+        if not user.check_password(password):
+            user.set_password(password)
+            changed = True
+
+        if changed:
+            user.save()
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        if profile.role != role:
+            profile.role = role
+            profile.save(update_fields=["role"])
+
+        return user
+
     def handle(self, *args, **options):
         now = timezone.now()
+
+        admin_user = self._ensure_user(
+            username="admin_demo",
+            password="AdminDemo123!",
+            first_name="Админ",
+            last_name="Демо",
+            email="admin_demo@example.com",
+            role=UserProfile.ROLE_ADMIN,
+            is_superuser=True,
+        )
+        manager_user = self._ensure_user(
+            username="manager_demo",
+            password="ManagerDemo123!",
+            first_name="Менеджер",
+            last_name="Демо",
+            email="manager_demo@example.com",
+            role=UserProfile.ROLE_MANAGER,
+        )
+        self._ensure_user(
+            username="student_demo",
+            password="StudentDemo123!",
+            first_name="Студент",
+            last_name="Демо",
+            email="student_demo@example.com",
+            role=UserProfile.ROLE_STUDENT,
+        )
 
         for i in range(1, 6):
             News.objects.get_or_create(
@@ -29,7 +107,7 @@ class Command(BaseCommand):
                 },
             )
 
-        for i in range(1, 4):
+        for i in range(1, 5):
             Event.objects.get_or_create(
                 title=f"Мероприятие студсовета №{i}",
                 defaults={
@@ -121,14 +199,22 @@ class Command(BaseCommand):
         )
 
         if not CommunityPost.objects.filter(is_published=True).exists():
-            author = User.objects.order_by("id").first()
-            if author:
-                CommunityPost.objects.create(
-                    author=author,
-                    title="Идеи для весеннего фестиваля",
-                    body="Делимся предложениями по программе, площадкам и форматам проведения фестиваля.",
-                    is_pinned=True,
-                    is_published=True,
-                )
+            CommunityPost.objects.create(
+                author=manager_user,
+                title="Идеи для весеннего фестиваля",
+                body="Делимся предложениями по программе, площадкам и форматам проведения фестиваля.",
+                is_pinned=True,
+                is_published=True,
+            )
 
-        self.stdout.write(self.style.SUCCESS("Тестовые данные для студсовета успешно созданы."))
+        if not CommunityPost.objects.filter(author=admin_user, is_published=True).exists():
+            CommunityPost.objects.create(
+                author=admin_user,
+                title="План встреч на месяц",
+                body="Публикуем календарь собраний и проектных сессий студенческого совета.",
+                is_pinned=False,
+                is_published=True,
+            )
+
+        self.stdout.write(self.style.SUCCESS("Тестовые данные и роли пользователей успешно созданы."))
+
