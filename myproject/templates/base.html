@@ -64,6 +64,11 @@
                                 <span>Регистрация</span>
                             </a>
                         {% endif %}
+                        <a class="btnCommon btnCommon--red header-btn-apply" href="{% url 'core:join' %}">Вступить в студсовет</a>
+                        <a class="social-header-btn" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
+                            <span class="icon-header-social icon-header--vk"></span>
+                        </a>
+                        <button type="button" class="btn-menu-hamburger" id="mobileMenuOpen" aria-label="Открыть меню"></button>
                     </div>
                 </div>
 
@@ -75,24 +80,7 @@
                             </a>
                         {% endfor %}
                     </nav>
-
-                    <div class="social-header">
-                        <a class="social-header-btn" href="https://t.me/mosvitte" target="_blank" rel="noopener" aria-label="Telegram">
-                            <span class="icon-header-social icon-header--telegram"></span>
-                        </a>
-                        <a class="social-header-btn" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
-                            <span class="icon-header-social icon-header--vk"></span>
-                        </a>
-                        <a class="social-header-btn" href="https://www.youtube.com/@muiv_moscow" target="_blank" rel="noopener" aria-label="YouTube">
-                            <span class="icon-header-social icon-header--youtube"></span>
-                        </a>
-                    </div>
                 </div>
-            </div>
-
-            <div class="header-actions">
-                <a class="btnCommon btnCommon--red header-btn-apply" href="{% url 'core:join' %}">Вступить в студсовет</a>
-                <button type="button" class="btn-menu-hamburger" id="mobileMenuOpen" aria-label="Открыть меню"></button>
             </div>
         </div>
 
@@ -216,8 +204,6 @@
                     <span class="footer_title">Социальные сети</span>
                     <div class="footer_social">
                         <a class="icon_vk" href="https://vk.com/mosvitte" target="_blank" rel="noopener">VK</a>
-                        <a class="icon_telegram" href="https://t.me/mosvitte" target="_blank" rel="noopener">Telegram</a>
-                        <a class="icon_youtube" href="https://www.youtube.com/@muiv_moscow" target="_blank" rel="noopener">YouTube</a>
                     </div>
                 </nav>
 

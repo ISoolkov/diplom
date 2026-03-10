@@ -141,7 +141,9 @@ a {
 }
 
 .header-top-row {
-    gap: 0.8rem;
+    gap: 0.6rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 .header-bottom-row {
@@ -870,6 +872,11 @@ button:hover {
     font-weight: 700;
     padding: 0;
     cursor: pointer;
+}
+
+.link-button:hover {
+    background: transparent;
+    color: var(--muiv-accent-dark);
 }
 
 /* Footer */

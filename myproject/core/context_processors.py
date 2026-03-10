@@ -3,7 +3,7 @@
 from .models import UserProfile
 from .permissions import get_user_role, has_any_role
 
-AUTHOR_FULL_NAME = "Иванов Иван Иванович"
+AUTHOR_FULL_NAME = "Чубун Илья Валерьевич"
 
 PAGE_TITLES = {
     "core:home": "Главная",
