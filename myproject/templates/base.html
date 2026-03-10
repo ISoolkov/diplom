@@ -66,11 +66,12 @@
                                 <span>Регистрация</span>
                             </a>
                         {% endif %}
-                        <a class="btnCommon btnCommon--red header-btn-apply" href="{% url 'core:join' %}">Вступить в студсовет</a>
+                        {% if not is_staff_panel %}
+                            <a class="btnCommon btnCommon--red header-btn-apply" href="{% url 'core:join' %}">Вступить в студсовет</a>
+                        {% endif %}
                         <a class="social-header-btn" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
                             <span class="icon-header-social icon-header--vk"></span>
                         </a>
-                        <button type="button" class="btn-menu-hamburger" id="mobileMenuOpen" aria-label="Открыть меню"></button>
                     </div>
                 </div>
 
@@ -84,16 +85,20 @@
                     </nav>
                 </div>
             </div>
+            <a class="social-header-btn mobile-header-vk" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
+                <span class="icon-header-social icon-header--vk"></span>
+            </a>
+            <button type="button" class="btn-menu-hamburger" id="mobileMenuOpen" aria-label="Открыть меню"></button>
         </div>
 
         <div class="mobileMenu" id="mobileMenu">
             <div class="mobileMenu-header">
-                <a class="logo-muiv" href="{% url 'core:home' %}">
-                    <img class="logo-muiv--mini" src="{% static 'img/logo-muiv-mini.svg' %}" alt="МУ им. С.Ю. Витте">
-                </a>
                 <button type="button" class="mobileMenu-close" id="mobileMenuClose" aria-label="Закрыть меню"></button>
             </div>
             <nav class="mobileMenu-body">
+                {% if not is_staff_panel %}
+                    <a href="{% url 'core:join' %}">Вступить в студсовет</a>
+                {% endif %}
                 {% for item in main_menu %}
                     <a href="{{ item.url }}">{{ item.label }}</a>
                 {% endfor %}
@@ -102,6 +107,10 @@
                     {% if is_staff_panel %}
                         <a href="{% url 'core:staff_dashboard' %}">Панель управления</a>
                     {% endif %}
+                    <form method="post" action="{% url 'logout' %}" class="inline-form mobileMenu-logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="mobileMenu-logout-btn">Выйти</button>
+                    </form>
                 {% else %}
                     <a href="{% url 'login' %}">Вход</a>
                     <a href="{% url 'core:register' %}">Регистрация</a>
