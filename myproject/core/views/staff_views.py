@@ -20,7 +20,7 @@ from core.services import (
 User = get_user_model()
 
 
-@role_required(UserProfile.ROLE_ADMIN)
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_dashboard(request):
     role_rows = UserProfile.objects.values("role").annotate(total=Count("id")).order_by("role")
     role_stats = {row["role"]: row["total"] for row in role_rows}
@@ -43,7 +43,7 @@ def staff_dashboard(request):
     return render(request, "core/staff/dashboard.html", context)
 
 
-@role_required(UserProfile.ROLE_ADMIN)
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_feedbacks(request):
     if request.method == "POST":
         item = get_object_or_404(FeedbackMessage, pk=request.POST.get("feedback_id"))
@@ -62,7 +62,7 @@ def staff_feedbacks(request):
     return render(request, "core/staff/feedbacks.html", {"items": items})
 
 
-@role_required(UserProfile.ROLE_ADMIN)
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_join_requests(request):
     if request.method == "POST":
         item = get_object_or_404(CouncilJoinApplication, pk=request.POST.get("join_id"))
@@ -112,7 +112,7 @@ def staff_files(request):
     return render(request, "core/staff/files.html", {"items": items})
 
 
-@role_required(UserProfile.ROLE_ADMIN)
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_reports(request):
     context = {
         "events_total": Event.objects.count(),
@@ -122,7 +122,7 @@ def staff_reports(request):
     return render(request, "core/staff/reports.html", context)
 
 
-@role_required(UserProfile.ROLE_ADMIN)
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def export_events_docx(request):
     try:
         output = build_events_docx(Event.objects.order_by("start_at"))
@@ -134,7 +134,7 @@ def export_events_docx(request):
     return FileResponse(output, as_attachment=True, filename=filename)
 
 
-@role_required(UserProfile.ROLE_ADMIN)
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def export_feedback_xlsx(request):
     try:
         output = build_feedback_xlsx(FeedbackMessage.objects.order_by("-created_at"))

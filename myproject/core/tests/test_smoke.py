@@ -36,6 +36,24 @@ class SmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/staff/dashboard.html")
 
+    def test_staff_reports_available_for_manager(self):
+        manager = self.create_user("manager", role=UserProfile.ROLE_MANAGER)
+        self.client.login(username=manager.username, password="pass12345")
+
+        response = self.client.get(reverse("core:staff_reports"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/staff/reports.html")
+
+    def test_staff_users_forbidden_for_manager(self):
+        manager = self.create_user("manager_limited", role=UserProfile.ROLE_MANAGER)
+        self.client.login(username=manager.username, password="pass12345")
+
+        response = self.client.get(reverse("core:staff_users"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("core:home"))
+
     def test_feedback_form_creates_message(self):
         response = self.client.post(
             reverse("core:feedback"),

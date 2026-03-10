@@ -45,7 +45,6 @@ MAIN_MENU = [
     ("core:faq", "FAQ"),
     ("core:community", "Сообщество"),
     ("core:feedback", "Обратная связь"),
-    ("core:join", "Вступить"),
 ]
 
 CABINET_MENU = [
@@ -58,12 +57,19 @@ CABINET_MENU = [
     ("core:my_files", "Файлы"),
 ]
 
-STAFF_MENU = [
+STAFF_MENU_ADMIN = [
     ("core:staff_dashboard", "Дашборд"),
     ("core:staff_feedbacks", "Обращения"),
     ("core:staff_join_requests", "Заявки"),
     ("core:staff_users", "Пользователи"),
     ("core:staff_files", "Файлы"),
+    ("core:staff_reports", "Отчеты"),
+]
+
+STAFF_MENU_MANAGER = [
+    ("core:staff_dashboard", "Дашборд"),
+    ("core:staff_feedbacks", "Обращения"),
+    ("core:staff_join_requests", "Заявки"),
     ("core:staff_reports", "Отчеты"),
 ]
 
@@ -82,6 +88,16 @@ def _resolve_menu(items):
 def navigation_context(request):
     resolver = request.resolver_match
     view_name = resolver.view_name if resolver else ""
+    user_role = get_user_role(request.user)
+    is_staff_admin = has_any_role(request.user, UserProfile.ROLE_ADMIN)
+    is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
+
+    if is_staff_admin:
+        staff_menu_items = STAFF_MENU_ADMIN
+    elif user_role == UserProfile.ROLE_MANAGER:
+        staff_menu_items = STAFF_MENU_MANAGER
+    else:
+        staff_menu_items = []
 
     breadcrumbs = [{"title": "Главная", "url": reverse("core:home")}]
     if view_name and view_name != "core:home":
@@ -90,10 +106,11 @@ def navigation_context(request):
     return {
         "main_menu": _resolve_menu(MAIN_MENU),
         "cabinet_menu": _resolve_menu(CABINET_MENU),
-        "staff_menu": _resolve_menu(STAFF_MENU),
+        "staff_menu": _resolve_menu(staff_menu_items),
         "breadcrumbs": breadcrumbs,
         "author_full_name": AUTHOR_FULL_NAME,
-        "user_role": get_user_role(request.user),
-        "is_staff_admin": has_any_role(request.user, UserProfile.ROLE_ADMIN),
+        "user_role": user_role,
+        "is_staff_admin": is_staff_admin,
+        "is_staff_panel": is_staff_panel,
     }
 

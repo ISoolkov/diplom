@@ -141,9 +141,9 @@ a {
 }
 
 .header-top-row {
-    gap: 0.6rem;
+    gap: 0.35rem;
     justify-content: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .header-bottom-row {
@@ -163,12 +163,13 @@ a {
 }
 
 .icon-block {
-    flex-wrap: wrap;
-    gap: 0.65rem;
+    flex-wrap: nowrap;
+    gap: 0.45rem;
+    min-width: 0;
 }
 
 .header-btn {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     font-weight: 600;
     color: var(--muiv-slate);
     line-height: 1;
@@ -176,10 +177,16 @@ a {
     background: transparent;
     padding: 0;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .header-btn span + span {
-    margin-left: 0.45rem;
+    margin-left: 0.3rem;
+}
+
+.header-top-row .icon-header {
+    width: 30px;
+    height: 30px;
 }
 
 .header-btn:hover {
@@ -359,6 +366,17 @@ a {
 
 .btnCommon--red:hover {
     filter: brightness(1.06);
+}
+
+.header-btn-apply {
+    white-space: nowrap;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.82rem;
+}
+
+.header-top-row .social-header-btn {
+    width: 32px;
+    height: 32px;
 }
 
 .btn-menu-hamburger {
