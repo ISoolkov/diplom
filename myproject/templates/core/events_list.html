@@ -16,6 +16,24 @@
             {% if event.registration_deadline %}
                 <p><small>Регистрация до: {{ event.registration_deadline|date:"d.m.Y H:i" }}</small></p>
             {% endif %}
+            {% if event.max_participants %}
+                <p><small>Максимум участников: {{ event.max_participants }}</small></p>
+            {% else %}
+                <p><small>Максимум участников: без ограничения</small></p>
+            {% endif %}
+
+            {% if can_manage_events %}
+                <details class="event-manage">
+                    <summary>Редактировать анонс</summary>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                        <input type="hidden" name="archive" value="{% if archive %}1{% else %}0{% endif %}">
+                        {{ event.edit_form.as_p }}
+                        <button type="submit">Сохранить изменения</button>
+                    </form>
+                </details>
+            {% endif %}
         </article>
     {% empty %}
         {% if archive %}

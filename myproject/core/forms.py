@@ -6,6 +6,7 @@ from .models import (
     CommunityComment,
     CommunityPost,
     CouncilJoinApplication,
+    Event,
     EventRegistration,
     FeedbackMessage,
     UserFile,
@@ -81,6 +82,47 @@ class EventRegistrationForm(forms.ModelForm):
             "comment": forms.TextInput(
                 attrs={"placeholder": "Комментарий (необязательно)"}
             )
+        }
+
+
+class EventManageForm(forms.ModelForm):
+    start_at = forms.DateTimeField(
+        label="Дата и время начала",
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(
+            format="%Y-%m-%dT%H:%M",
+            attrs={"type": "datetime-local"},
+        ),
+    )
+    registration_deadline = forms.DateTimeField(
+        label="Дедлайн регистрации",
+        required=False,
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(
+            format="%Y-%m-%dT%H:%M",
+            attrs={"type": "datetime-local"},
+        ),
+    )
+
+    class Meta:
+        model = Event
+        fields = (
+            "title",
+            "short_description",
+            "location",
+            "start_at",
+            "registration_deadline",
+            "max_participants",
+        )
+        labels = {
+            "title": "Название",
+            "short_description": "Краткий анонс",
+            "location": "Место",
+            "max_participants": "Макс. участников",
+        }
+        widgets = {
+            "short_description": forms.Textarea(attrs={"rows": 2}),
+            "max_participants": forms.NumberInput(attrs={"min": 1}),
         }
 
 

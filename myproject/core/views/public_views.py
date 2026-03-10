@@ -9,6 +9,7 @@ from core.forms import (
     CommunityCommentForm,
     CommunityPostForm,
     CouncilJoinApplicationForm,
+    EventManageForm,
     EventRegistrationForm,
     FeedbackForm,
     SignUpForm,
@@ -24,6 +25,7 @@ from core.models import (
     StudentCouncilMember,
     UserProfile,
 )
+from core.permissions import has_any_role
 from core.services import ServiceValidationError, register_for_event
 
 
@@ -57,13 +59,59 @@ def news_detail(request, pk):
 
 
 def events_list(request):
+    can_manage_events = has_any_role(
+        request.user,
+        UserProfile.ROLE_ADMIN,
+        UserProfile.ROLE_MANAGER,
+    )
+
+    archive = request.GET.get("archive") == "1" or request.POST.get("archive") == "1"
     queryset = Event.objects.filter(is_published=True)
-    archive = request.GET.get("archive")
-    if archive == "1":
+    if archive:
         queryset = queryset.filter(start_at__lt=timezone.now()).order_by("-start_at")
     else:
         queryset = queryset.filter(start_at__gte=timezone.now()).order_by("start_at")
-    return render(request, "core/events_list.html", {"events": queryset, "archive": archive == "1"})
+
+    events = list(queryset)
+    invalid_form_event_id = None
+
+    if request.method == "POST":
+        if not can_manage_events:
+            messages.error(request, "Недостаточно прав для редактирования анонсов.")
+            target_url = reverse("core:events_list")
+            if archive:
+                target_url = f"{target_url}?archive=1"
+            return redirect(target_url)
+
+        event = get_object_or_404(Event, pk=request.POST.get("event_id"), is_published=True)
+        form = EventManageForm(request.POST, instance=event)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Анонс мероприятия обновлен.")
+            target_url = reverse("core:events_list")
+            if archive:
+                target_url = f"{target_url}?archive=1"
+            return redirect(target_url)
+
+        messages.error(request, "Проверьте поля формы и попробуйте снова.")
+        invalid_form_event_id = event.pk
+
+    if can_manage_events:
+        for event in events:
+            if event.pk == invalid_form_event_id and request.method == "POST":
+                event.edit_form = form
+            else:
+                event.edit_form = EventManageForm(instance=event)
+
+    return render(
+        request,
+        "core/events_list.html",
+        {
+            "events": events,
+            "archive": archive,
+            "can_manage_events": can_manage_events,
+        },
+    )
 
 
 def event_detail(request, pk):

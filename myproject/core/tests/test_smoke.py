@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import Event, FeedbackMessage, UserProfile
+from core.models import Event, EventRegistration, FeedbackMessage, UserProfile
 
 User = get_user_model()
 
@@ -111,3 +111,78 @@ class SmokeTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/cabinet.html")
+
+    def test_event_registration_forbidden_after_deadline(self):
+        user = self.create_user("deadline_user")
+        event = Event.objects.create(
+            title="Событие с прошедшим дедлайном",
+            description="Описание",
+            short_description="Коротко",
+            location="Аудитория 101",
+            start_at=timezone.now() + timedelta(days=1),
+            registration_deadline=timezone.now() - timedelta(hours=1),
+            is_published=True,
+        )
+        self.client.login(username=user.username, password="pass12345")
+
+        response = self.client.post(reverse("core:event_detail", kwargs={"pk": event.pk}), {"comment": "Хочу участвовать"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Регистрация на мероприятие закрыта.")
+        self.assertEqual(EventRegistration.objects.filter(event=event, user=user).count(), 0)
+
+    def test_event_registration_forbidden_when_limit_reached(self):
+        event = Event.objects.create(
+            title="Событие с лимитом",
+            description="Описание",
+            short_description="Коротко",
+            location="Аудитория 204",
+            start_at=timezone.now() + timedelta(days=2),
+            registration_deadline=timezone.now() + timedelta(days=1),
+            max_participants=1,
+            is_published=True,
+        )
+        first_user = self.create_user("first_user")
+        EventRegistration.objects.create(user=first_user, event=event, comment="")
+
+        second_user = self.create_user("second_user")
+        self.client.login(username=second_user.username, password="pass12345")
+
+        response = self.client.post(reverse("core:event_detail", kwargs={"pk": event.pk}), {"comment": "Успеть бы"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Достигнут лимит участников мероприятия.")
+        self.assertEqual(EventRegistration.objects.filter(event=event).count(), 1)
+
+    def test_manager_can_update_event_from_events_list(self):
+        manager = self.create_user("events_manager", role=UserProfile.ROLE_MANAGER)
+        event = Event.objects.create(
+            title="Тестовое событие",
+            description="Описание",
+            short_description="Старый анонс",
+            location="Аудитория 101",
+            start_at=timezone.now() + timedelta(days=3),
+            is_published=True,
+        )
+        self.client.login(username=manager.username, password="pass12345")
+
+        new_deadline = (timezone.now() + timedelta(days=2)).replace(second=0, microsecond=0)
+        response = self.client.post(
+            reverse("core:events_list"),
+            {
+                "event_id": event.pk,
+                "archive": "0",
+                "title": event.title,
+                "short_description": "Обновленный анонс",
+                "location": event.location,
+                "start_at": event.start_at.strftime("%Y-%m-%dT%H:%M"),
+                "registration_deadline": new_deadline.strftime("%Y-%m-%dT%H:%M"),
+                "max_participants": "150",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        event.refresh_from_db()
+        self.assertEqual(event.short_description, "Обновленный анонс")
+        self.assertEqual(event.max_participants, 150)
+        self.assertIsNotNone(event.registration_deadline)
