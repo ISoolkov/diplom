@@ -8,6 +8,7 @@ from django.utils import timezone
 from core.models import CouncilJoinApplication, Event, FeedbackMessage, News, UserFile, UserProfile
 from core.permissions import role_required
 from core.services import (
+    EVENT_REGISTRATION_SUBJECT_PREFIX,
     ServiceDependencyError,
     ServiceValidationError,
     build_events_docx,
@@ -58,27 +59,52 @@ def staff_feedbacks(request):
             messages.success(request, "Статус обращения обновлен.")
         return redirect("core:staff_feedbacks")
 
-    items = FeedbackMessage.objects.select_related("user")
+    items = FeedbackMessage.objects.select_related("user").exclude(
+        subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+    )
     return render(request, "core/staff/feedbacks.html", {"items": items})
 
 
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_join_requests(request):
     if request.method == "POST":
-        item = get_object_or_404(CouncilJoinApplication, pk=request.POST.get("join_id"))
-        new_status = request.POST.get("status", "")
-        moderation_comment = request.POST.get("moderation_comment", "")
+        if request.POST.get("event_feedback_id"):
+            item = get_object_or_404(
+                FeedbackMessage,
+                pk=request.POST.get("event_feedback_id"),
+                subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX,
+            )
+            new_status = request.POST.get("status", "")
+            moderation_comment = request.POST.get("moderation_comment", "")
 
-        try:
-            update_join_request_status(item, new_status, moderation_comment)
-        except ServiceValidationError as exc:
-            messages.error(request, str(exc))
+            try:
+                update_feedback_status(item, new_status, moderation_comment)
+            except ServiceValidationError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, "Статус заявки на мероприятие обновлен.")
         else:
-            messages.success(request, "Статус заявки обновлен.")
+            item = get_object_or_404(CouncilJoinApplication, pk=request.POST.get("join_id"))
+            new_status = request.POST.get("status", "")
+            moderation_comment = request.POST.get("moderation_comment", "")
+
+            try:
+                update_join_request_status(item, new_status, moderation_comment)
+            except ServiceValidationError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, "Статус заявки обновлен.")
         return redirect("core:staff_join_requests")
 
     items = CouncilJoinApplication.objects.select_related("user")
-    return render(request, "core/staff/join_requests.html", {"items": items})
+    event_requests = FeedbackMessage.objects.select_related("user").filter(
+        subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+    )
+    return render(
+        request,
+        "core/staff/join_requests.html",
+        {"items": items, "event_requests": event_requests},
+    )
 
 
 @role_required(UserProfile.ROLE_ADMIN)

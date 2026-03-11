@@ -64,5 +64,53 @@
         </tbody>
     </table>
 </div>
+
+<h2>Заявки на мероприятия</h2>
+<div class="table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Пользователь</th>
+                <th>Тема и текст</th>
+                <th>Модерация</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in event_requests %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <strong>{{ item.name }}</strong><br>
+                        <small>{{ item.email }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ item.subject }}</strong>
+                        <p>{{ item.message|linebreaksbr }}</p>
+                    </td>
+                    <td>
+                        <form method="post" class="inline-controls">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_feedback_id" value="{{ item.id }}">
+                            <select name="status">
+                                {% for value, label in item.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
+                            <button type="submit">Сохранить изменения</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">Заявок на мероприятия пока нет.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
 

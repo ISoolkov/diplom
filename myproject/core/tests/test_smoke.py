@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import Event, EventRegistration, FeedbackMessage, UserProfile
+from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 User = get_user_model()
 
@@ -186,3 +187,58 @@ class SmokeTests(TestCase):
         self.assertEqual(event.short_description, "Обновленный анонс")
         self.assertEqual(event.max_participants, 150)
         self.assertIsNotNone(event.registration_deadline)
+
+    def test_event_registration_creates_auto_moderation_request(self):
+        user = self.create_user("student_event")
+        user.first_name = "Илья"
+        user.last_name = "Чубун"
+        user.email = "student@example.com"
+        user.save(update_fields=["first_name", "last_name", "email"])
+
+        event = Event.objects.create(
+            title="Форум лидеров",
+            description="Описание",
+            short_description="Коротко",
+            location="Корпус А, актовый зал",
+            start_at=timezone.now() + timedelta(days=4),
+            is_published=True,
+        )
+
+        self.client.login(username=user.username, password="pass12345")
+        response = self.client.post(
+            reverse("core:event_detail", kwargs={"pk": event.pk}),
+            {"comment": "Хочу участвовать"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(EventRegistration.objects.filter(user=user, event=event).count(), 1)
+
+        feedback = FeedbackMessage.objects.get(user=user, subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX)
+        self.assertIn(event.title, feedback.subject)
+        self.assertIn(event.location, feedback.message)
+        self.assertIn("Илья Чубун", feedback.message)
+
+    def test_event_requests_hidden_in_feedbacks_and_shown_in_join_requests(self):
+        manager = self.create_user("mod_manager", role=UserProfile.ROLE_MANAGER)
+        FeedbackMessage.objects.create(
+            name="Студент",
+            email="student@example.com",
+            subject=f"{EVENT_REGISTRATION_SUBJECT_PREFIX} Заявка на мероприятие: Тест",
+            message="Тестовая заявка",
+        )
+        FeedbackMessage.objects.create(
+            name="Пользователь",
+            email="user@example.com",
+            subject="Обычное обращение",
+            message="Текст обращения",
+        )
+        self.client.login(username=manager.username, password="pass12345")
+
+        feedbacks_response = self.client.get(reverse("core:staff_feedbacks"))
+        self.assertEqual(feedbacks_response.status_code, 200)
+        self.assertContains(feedbacks_response, "Обычное обращение")
+        self.assertNotContains(feedbacks_response, "Заявка на мероприятие: Тест")
+
+        join_response = self.client.get(reverse("core:staff_join_requests"))
+        self.assertEqual(join_response.status_code, 200)
+        self.assertContains(join_response, "Заявка на мероприятие: Тест")
