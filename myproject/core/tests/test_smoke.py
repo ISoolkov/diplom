@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import CommunityPost, Event, EventRegistration, FeedbackMessage, UserProfile
+from core.models import CommunityPost, CouncilJoinApplication, Event, EventRegistration, FeedbackMessage, UserProfile
 from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 User = get_user_model()
@@ -298,3 +298,48 @@ class SmokeTests(TestCase):
         post.refresh_from_db()
         self.assertFalse(post.is_pinned)
         self.assertContains(self.client.get(reverse("core:community")), "Закреплено у вас")
+
+    def test_staff_cabinet_splits_feedbacks_and_requests(self):
+        manager = self.create_user("manager_cabinet", role=UserProfile.ROLE_MANAGER)
+        student = self.create_user("student_cabinet", role=UserProfile.ROLE_STUDENT)
+
+        FeedbackMessage.objects.create(
+            name="Студент",
+            email="student@example.com",
+            subject="Вопрос по расписанию",
+            message="Текст из формы обратной связи",
+            user=student,
+        )
+        FeedbackMessage.objects.create(
+            name="Студент",
+            email="student@example.com",
+            subject=f"{EVENT_REGISTRATION_SUBJECT_PREFIX} Заявка на мероприятие: Тест",
+            message="Текст заявки на мероприятие",
+            user=student,
+        )
+        CouncilJoinApplication.objects.create(
+            full_name="Иван Петров",
+            email="ivan@example.com",
+            phone="+79000000000",
+            faculty="it",
+            course="2",
+            motivation="Хочу участвовать",
+            experience="",
+            user=student,
+        )
+
+        self.client.login(username=manager.username, password="pass12345")
+
+        feedbacks_response = self.client.get(reverse("core:my_feedbacks"))
+        self.assertEqual(feedbacks_response.status_code, 200)
+        self.assertContains(feedbacks_response, "Вопрос по расписанию")
+        self.assertNotContains(feedbacks_response, "Заявка на мероприятие: Тест")
+
+        requests_response = self.client.get(reverse("core:my_join_requests"))
+        self.assertEqual(requests_response.status_code, 200)
+        self.assertContains(requests_response, "Иван Петров")
+        self.assertNotContains(requests_response, "Заявка на мероприятие: Тест")
+
+        events_response = self.client.get(reverse("core:my_events"))
+        self.assertEqual(events_response.status_code, 200)
+        self.assertContains(events_response, "Заявка на мероприятие: Тест")

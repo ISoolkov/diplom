@@ -1,7 +1,7 @@
 ﻿{% extends "base.html" %}
 {% block title %}Мои заявки в студсовет{% endblock %}
 {% block content %}
-<h1>Мои заявки в студсовет</h1>
+<h1>{% if is_staff_panel %}Заявки{% else %}Мои заявки в студсовет{% endif %}</h1>
 <nav class="page-nav">
     {% for item in cabinet_menu %}
         <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">

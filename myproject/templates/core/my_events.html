@@ -1,7 +1,7 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Мои мероприятия | Личный кабинет{% endblock %}
 {% block content %}
-<h1>Мои заявки на мероприятия</h1>
+<h1>{% if is_staff_panel %}Мероприятия{% else %}Мои заявки на мероприятия{% endif %}</h1>
 <nav class="page-nav">
     {% for item in cabinet_menu %}
         <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
@@ -9,10 +9,14 @@
         </a>
     {% endfor %}
 </nav>
+
 <div class="card-grid">
     {% for item in items %}
         <article class="card">
             <h2>{{ item.event.title }}</h2>
+            {% if is_staff_panel and item.user %}
+                <p><strong>Пользователь:</strong> {{ item.user.get_full_name|default:item.user.username }}</p>
+            {% endif %}
             <p><strong>Дата:</strong> {{ item.event.start_at|date:"d.m.Y H:i" }}</p>
             <p><strong>Место:</strong> {{ item.event.location }}</p>
             <p><strong>Комментарий:</strong> {{ item.comment|default:"-" }}</p>
@@ -25,4 +29,29 @@
         </article>
     {% endfor %}
 </div>
+
+{% if is_staff_panel %}
+    <h2>Заявки на мероприятия</h2>
+    <div class="card-grid">
+        {% for item in event_requests %}
+            <article class="card">
+                <h2>{{ item.subject }}</h2>
+                {% if item.user %}
+                    <p><strong>Пользователь:</strong> {{ item.user.get_full_name|default:item.user.username }}</p>
+                {% endif %}
+                <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
+                <div>{{ item.message|linebreaks }}</div>
+                {% if item.moderation_comment %}
+                    <p><strong>Комментарий модератора:</strong> {{ item.moderation_comment }}</p>
+                {% endif %}
+            </article>
+        {% empty %}
+            <article class="card">
+                <h2>Заявок на мероприятия пока нет</h2>
+                <p>Зарегистрируйтесь на мероприятие, чтобы заявка появилась в этом разделе.</p>
+                <p><a href="{% url 'core:events_list' %}">К мероприятиям</a></p>
+            </article>
+        {% endfor %}
+    </div>
+{% endif %}
 {% endblock %}

@@ -28,17 +28,9 @@
                             <span class="icon-header icon-header--mail"></span>
                             <span>info@muiv.ru</span>
                         </a>
-                        <a class="header-btn" href="#contacts">
-                            <span class="icon-header icon-header--city"></span>
-                            <span>Москва</span>
-                        </a>
                     </div>
 
                     <div class="icon-block">
-                        <a class="header-btn left-separator" href="{% url 'core:community' %}">
-                            <span class="icon-header icon-header--chat"></span>
-                            <span>Соцсеть</span>
-                        </a>
                         {% if user.is_authenticated %}
                             <a class="header-btn left-separator" href="{% url 'core:cabinet' %}">
                                 <span class="icon-header icon-header--lk"></span>

@@ -13,13 +13,24 @@ from core.models import (
     UserProfile,
 )
 from core.permissions import has_any_role
+from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 
 @login_required
 def cabinet(request):
-    feedbacks = FeedbackMessage.objects.filter(user=request.user)[:5]
-    registrations = EventRegistration.objects.filter(user=request.user).select_related("event")[:5]
-    join_requests = CouncilJoinApplication.objects.filter(user=request.user)[:5]
+    is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
+
+    if is_staff_panel:
+        feedbacks = FeedbackMessage.objects.exclude(subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX)[:5]
+        registrations = EventRegistration.objects.select_related("event", "user")[:5]
+        join_requests = CouncilJoinApplication.objects.select_related("user")[:5]
+    else:
+        feedbacks = FeedbackMessage.objects.filter(user=request.user).exclude(
+            subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+        )[:5]
+        registrations = EventRegistration.objects.filter(user=request.user).select_related("event")[:5]
+        join_requests = CouncilJoinApplication.objects.filter(user=request.user)[:5]
+
     my_posts = CommunityPost.objects.filter(author=request.user)[:5]
     my_files = UserFile.objects.filter(owner=request.user)[:5]
     return render(
@@ -58,20 +69,46 @@ def profile_edit(request):
 
 @login_required
 def my_feedbacks(request):
-    items = FeedbackMessage.objects.filter(user=request.user)
-    return render(request, "core/my_feedbacks.html", {"items": items})
+    is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
+    if is_staff_panel:
+        items = FeedbackMessage.objects.exclude(subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX)
+    else:
+        items = FeedbackMessage.objects.filter(user=request.user).exclude(
+            subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+        )
+    return render(request, "core/my_feedbacks.html", {"items": items, "is_staff_panel": is_staff_panel})
 
 
 @login_required
 def my_events(request):
-    items = EventRegistration.objects.filter(user=request.user).select_related("event")
-    return render(request, "core/my_events.html", {"items": items})
+    is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
+    if is_staff_panel:
+        items = EventRegistration.objects.select_related("event", "user")
+        event_requests = FeedbackMessage.objects.select_related("user").filter(
+            subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+        )
+    else:
+        items = EventRegistration.objects.filter(user=request.user).select_related("event")
+        event_requests = FeedbackMessage.objects.none()
+    return render(
+        request,
+        "core/my_events.html",
+        {"items": items, "event_requests": event_requests, "is_staff_panel": is_staff_panel},
+    )
 
 
 @login_required
 def my_join_requests(request):
-    items = CouncilJoinApplication.objects.filter(user=request.user)
-    return render(request, "core/my_join_requests.html", {"items": items})
+    is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
+    if is_staff_panel:
+        items = CouncilJoinApplication.objects.select_related("user")
+    else:
+        items = CouncilJoinApplication.objects.filter(user=request.user)
+    return render(
+        request,
+        "core/my_join_requests.html",
+        {"items": items, "is_staff_panel": is_staff_panel},
+    )
 
 
 @login_required
