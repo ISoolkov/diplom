@@ -3,6 +3,7 @@
 from .models import (
     CommunityComment,
     CommunityPost,
+    CommunityPostPin,
     CouncilJoinApplication,
     Document,
     Event,
@@ -105,3 +106,9 @@ class CommunityCommentAdmin(admin.ModelAdmin):
     list_display = ("post", "author", "is_published", "created_at")
     list_filter = ("is_published", "created_at")
     search_fields = ("post__title", "author__username", "body")
+
+
+@admin.register(CommunityPostPin)
+class CommunityPostPinAdmin(admin.ModelAdmin):
+    list_display = ("user", "post", "created_at")
+    search_fields = ("user__username", "post__title")

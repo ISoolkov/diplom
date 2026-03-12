@@ -1,6 +1,7 @@
 ﻿from django.contrib import messages
 from django.contrib.auth import login
 from django.core.paginator import Paginator
+from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -15,6 +16,7 @@ from core.forms import (
     SignUpForm,
 )
 from core.models import (
+    CommunityPostPin,
     CommunityPost,
     Document,
     Event,
@@ -210,22 +212,50 @@ def join_request_create(request):
 
 
 def community_feed(request):
+    can_manage_posts = has_any_role(
+        request.user,
+        UserProfile.ROLE_ADMIN,
+        UserProfile.ROLE_MANAGER,
+    )
     post_form = CommunityPostForm()
     comment_form = CommunityCommentForm()
 
     if request.method == "POST":
         if not request.user.is_authenticated:
-            messages.error(request, "Для публикации и комментариев выполните вход.")
+            messages.error(request, "Для действий в соцсети выполните вход.")
             return redirect(f"{reverse('login')}?next={reverse('core:community')}")
 
         if "create_post" in request.POST:
+            if not can_manage_posts:
+                messages.error(request, "Публиковать посты могут только администратор и менеджер.")
+                return redirect(reverse("core:community"))
             post_form = CommunityPostForm(request.POST)
             if post_form.is_valid():
                 post = post_form.save(commit=False)
                 post.author = request.user
                 post.save()
-                messages.success(request, "Публикация добавлена в сообщество.")
+                messages.success(request, "Публикация добавлена в соцсеть.")
                 return redirect(f"{reverse('core:community')}#post-{post.id}")
+
+        if "toggle_pin" in request.POST:
+            post = get_object_or_404(CommunityPost, pk=request.POST.get("post_id"), is_published=True)
+            pin, created = CommunityPostPin.objects.get_or_create(user=request.user, post=post)
+            if created:
+                messages.success(request, "Публикация закреплена у вас.")
+            else:
+                pin.delete()
+                messages.success(request, "Публикация откреплена у вас.")
+            return redirect(f"{reverse('core:community')}#post-{post.id}")
+
+        if "toggle_global_pin" in request.POST:
+            if not can_manage_posts:
+                messages.error(request, "Глобальное закрепление доступно только администратору и менеджеру.")
+                return redirect(reverse("core:community"))
+            post = get_object_or_404(CommunityPost, pk=request.POST.get("post_id"), is_published=True)
+            post.is_pinned = not post.is_pinned
+            post.save(update_fields=["is_pinned", "updated_at"])
+            messages.success(request, "Глобальное закрепление публикации обновлено.")
+            return redirect(f"{reverse('core:community')}#post-{post.id}")
 
         if "add_comment" in request.POST:
             post_id = request.POST.get("post_id")
@@ -239,12 +269,16 @@ def community_feed(request):
                 messages.success(request, "Комментарий опубликован.")
                 return redirect(f"{reverse('core:community')}#post-{post.id}")
 
-    posts = (
-        CommunityPost.objects.filter(is_published=True)
-        .select_related("author")
-        .prefetch_related("comments__author")
-    )
-
+    posts = CommunityPost.objects.filter(is_published=True).select_related("author").prefetch_related("comments__author")
+    pinned_post_ids = set()
+    if request.user.is_authenticated:
+        pinned_subquery = CommunityPostPin.objects.filter(user=request.user, post_id=OuterRef("pk"))
+        posts = posts.annotate(is_user_pinned=Exists(pinned_subquery)).order_by(
+            "-is_user_pinned", "-is_pinned", "-created_at"
+        )
+        pinned_post_ids = set(
+            CommunityPostPin.objects.filter(user=request.user).values_list("post_id", flat=True)
+        )
     return render(
         request,
         "core/community_feed.html",
@@ -252,6 +286,8 @@ def community_feed(request):
             "posts": posts,
             "post_form": post_form,
             "comment_form": comment_form,
+            "can_manage_posts": can_manage_posts,
+            "pinned_post_ids": pinned_post_ids,
         },
     )
 
@@ -272,3 +308,4 @@ def register(request):
     else:
         form = SignUpForm()
     return render(request, "registration/register.html", {"form": form})
+

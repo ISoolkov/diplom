@@ -12,7 +12,7 @@ PAGE_TITLES = {
     "core:news_detail": "Новость",
     "core:events_list": "Мероприятия",
     "core:event_detail": "Мероприятие",
-    "core:community": "Сообщество",
+    "core:community": "Соцсеть",
     "core:join": "Вступить в студсовет",
     "core:documents": "Документы",
     "core:projects": "Проекты",
@@ -43,7 +43,7 @@ MAIN_MENU = [
     ("core:projects", "Проекты"),
     ("core:documents", "Документы"),
     ("core:faq", "FAQ"),
-    ("core:community", "Сообщество"),
+    ("core:community", "Соцсеть"),
     ("core:feedback", "Обратная связь"),
 ]
 

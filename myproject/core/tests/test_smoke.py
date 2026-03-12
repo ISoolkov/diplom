@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import Event, EventRegistration, FeedbackMessage, UserProfile
+from core.models import CommunityPost, Event, EventRegistration, FeedbackMessage, UserProfile
 from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 User = get_user_model()
@@ -242,3 +242,59 @@ class SmokeTests(TestCase):
         join_response = self.client.get(reverse("core:staff_join_requests"))
         self.assertEqual(join_response.status_code, 200)
         self.assertContains(join_response, "Заявка на мероприятие: Тест")
+
+    def test_student_cannot_create_community_post(self):
+        student = self.create_user("student_community", role=UserProfile.ROLE_STUDENT)
+        self.client.login(username=student.username, password="pass12345")
+
+        response = self.client.post(
+            reverse("core:community"),
+            {"create_post": "1", "title": "Пост студента", "body": "Текст поста"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CommunityPost.objects.count(), 0)
+
+    def test_manager_can_create_and_pin_community_post(self):
+        manager = self.create_user("manager_community", role=UserProfile.ROLE_MANAGER)
+        self.client.login(username=manager.username, password="pass12345")
+
+        create_response = self.client.post(
+            reverse("core:community"),
+            {"create_post": "1", "title": "Пост менеджера", "body": "Текст поста"},
+        )
+        self.assertEqual(create_response.status_code, 302)
+
+        post = CommunityPost.objects.get(title="Пост менеджера")
+        self.assertFalse(post.is_pinned)
+
+        pin_response = self.client.post(
+            reverse("core:community"),
+            {"toggle_global_pin": "1", "post_id": post.id},
+        )
+        self.assertEqual(pin_response.status_code, 302)
+        post.refresh_from_db()
+        self.assertTrue(post.is_pinned)
+
+    def test_student_can_pin_post_only_for_self(self):
+        manager = self.create_user("manager_post_owner", role=UserProfile.ROLE_MANAGER)
+        post = CommunityPost.objects.create(
+            author=manager,
+            title="Общий пост",
+            body="Общее содержание",
+            is_published=True,
+            is_pinned=False,
+        )
+
+        student = self.create_user("student_pin_self", role=UserProfile.ROLE_STUDENT)
+        self.client.login(username=student.username, password="pass12345")
+
+        response = self.client.post(
+            reverse("core:community"),
+            {"toggle_pin": "1", "post_id": post.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        post.refresh_from_db()
+        self.assertFalse(post.is_pinned)
+        self.assertContains(self.client.get(reverse("core:community")), "Закреплено у вас")

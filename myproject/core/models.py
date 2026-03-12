@@ -289,6 +289,28 @@ class CommunityPost(TimestampedModel):
         return self.title
 
 
+class CommunityPostPin(TimestampedModel):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="community_post_pins",
+    )
+    post = models.ForeignKey(
+        CommunityPost,
+        on_delete=models.CASCADE,
+        related_name="user_pins",
+    )
+
+    class Meta:
+        unique_together = ("user", "post")
+        ordering = ["-created_at"]
+        verbose_name = "Персональное закрепление поста"
+        verbose_name_plural = "Персональные закрепления постов"
+
+    def __str__(self):
+        return f"{self.user} pinned {self.post_id}"
+
+
 class CommunityComment(TimestampedModel):
     post = models.ForeignKey(CommunityPost, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(

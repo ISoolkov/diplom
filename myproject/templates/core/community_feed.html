@@ -1,12 +1,12 @@
 ﻿{% extends "base.html" %}
-{% block title %}Социальная сеть студсовета{% endblock %}
+{% block title %}Соцсеть студсовета{% endblock %}
 {% block content %}
-<h1>Социальная сеть студсовета</h1>
-<p>Пространство для общения студентов и студсоветов: обсуждения, идеи, вопросы и совместные инициативы.</p>
+<h1>Соцсеть студсовета</h1>
+<p>Пространство для общения студентов и студсовета: обсуждения, идеи, вопросы и совместные инициативы.</p>
 
 <div class="community-layout">
     <section>
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and can_manage_posts %}
             <article class="form">
                 <h2>Новая публикация</h2>
                 <form method="post">
@@ -15,16 +15,36 @@
                     <button type="submit" name="create_post" value="1">Опубликовать</button>
                 </form>
             </article>
-        {% else %}
+        {% elif not user.is_authenticated %}
             <article class="card">
                 <h2>Только для авторизованных</h2>
-                <p>Чтобы публиковать и комментировать, <a href="{% url 'login' %}?next={{ request.path }}">войдите в систему</a>.</p>
+                <p>Чтобы комментировать, <a href="{% url 'login' %}?next={{ request.path }}">войдите в систему</a>.</p>
             </article>
         {% endif %}
 
         {% for post in posts %}
             <article class="post-card" id="post-{{ post.id }}">
-                <h3>{{ post.title }} {% if post.is_pinned %}<span class="status-badge">Закреплено</span>{% endif %}</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
+                    <h3 style="margin:0;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;">
+                        {{ post.title }}
+                        {% if post.id in pinned_post_ids %}<span class="status-badge">Закреплено у вас</span>{% endif %}
+                        {% if post.is_pinned %}<span class="status-badge">Закреплено для всех</span>{% endif %}
+                    </h3>
+                    {% if user.is_authenticated %}
+                        <form method="post" class="inline-controls" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <button type="submit" name="toggle_pin" value="1">
+                                {% if post.id in pinned_post_ids %}Открепить у себя{% else %}Закрепить у себя{% endif %}
+                            </button>
+                            {% if can_manage_posts %}
+                                <button type="submit" name="toggle_global_pin" value="1">
+                                    {% if post.is_pinned %}Открепить для всех{% else %}Закрепить для всех{% endif %}
+                                </button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                </div>
                 <p class="post-meta">{{ post.author.get_full_name|default:post.author.username }} · {{ post.created_at|date:"d.m.Y H:i" }}</p>
                 <p>{{ post.body|linebreaks }}</p>
 
@@ -53,7 +73,7 @@
         {% empty %}
             <article class="card">
                 <h3>Пока нет публикаций</h3>
-                <p>Станьте первым, кто начнет обсуждение в студенческом сообществе.</p>
+                <p>Станьте первым, кто начнет обсуждение в соцсети студсовета.</p>
             </article>
         {% endfor %}
     </section>
@@ -69,12 +89,6 @@
             </ul>
         </article>
 
-        <article class="section-panel">
-            <h2>Быстрые действия</h2>
-            <p><a href="{% url 'core:join' %}">Подать заявку в студсовет</a></p>
-            <p><a href="{% url 'core:events_list' %}">Смотреть анонсы мероприятий</a></p>
-            <p><a href="{% url 'core:faq' %}">FAQ студсовета</a></p>
-        </article>
     </aside>
 </div>
 {% endblock %}
