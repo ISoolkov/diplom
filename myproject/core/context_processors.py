@@ -119,8 +119,12 @@ def navigation_context(request):
     if view_name and view_name != "core:home":
         breadcrumbs.append({"title": PAGE_TITLES.get(view_name, "Страница"), "url": None})
 
+    main_menu_items = MAIN_MENU
+    if not request.user.is_authenticated:
+        main_menu_items = [item for item in MAIN_MENU if item[0] != "core:community"]
+
     return {
-        "main_menu": _resolve_menu(MAIN_MENU),
+        "main_menu": _resolve_menu(main_menu_items),
         "cabinet_menu": _resolve_menu(CABINET_MENU),
         "staff_menu": _resolve_menu(staff_menu_items),
         "breadcrumbs": breadcrumbs,

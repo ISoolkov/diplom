@@ -226,6 +226,10 @@ def join_request_create(request):
 
 
 def community_feed(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "Раздел соцсети доступен только авторизованным пользователям.")
+        return redirect(f"{reverse('login')}?next={reverse('core:community')}")
+
     can_manage_posts = has_any_role(
         request.user,
         UserProfile.ROLE_ADMIN,
@@ -235,10 +239,6 @@ def community_feed(request):
     comment_form = CommunityCommentForm()
 
     if request.method == "POST":
-        if not request.user.is_authenticated:
-            messages.error(request, "Для действий в соцсети выполните вход.")
-            return redirect(f"{reverse('login')}?next={reverse('core:community')}")
-
         if "create_post" in request.POST:
             if not can_manage_posts:
                 messages.error(request, "Публиковать посты могут только администратор и менеджер.")

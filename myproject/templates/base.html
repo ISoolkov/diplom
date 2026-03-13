@@ -155,7 +155,9 @@
                     <div class="footer_box_menu_wrapper">
                         <a href="{% url 'core:home' %}">Главная</a>
                         <a href="{% url 'core:council' %}">О студсовете</a>
-                        <a href="{% url 'core:community' %}">Соцсеть</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'core:community' %}">Соцсеть</a>
+                        {% endif %}
                         {% if show_join_cta %}
                             <a href="{% url 'core:join' %}">Вступить</a>
                         {% endif %}

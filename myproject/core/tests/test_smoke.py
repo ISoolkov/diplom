@@ -367,3 +367,18 @@ class SmokeTests(TestCase):
         join_response = self.client.get(reverse("core:join"))
         self.assertEqual(join_response.status_code, 302)
         self.assertEqual(join_response.url, reverse("core:my_join_requests"))
+
+    def test_community_visible_only_for_authenticated_users(self):
+        anon_response = self.client.get(reverse("core:community"))
+        self.assertEqual(anon_response.status_code, 302)
+        self.assertIn(reverse("login"), anon_response.url)
+
+        home_response = self.client.get(reverse("core:home"))
+        menu_items = home_response.context["main_menu"]
+        self.assertFalse(any(item["view_name"] == "core:community" for item in menu_items))
+
+        student = self.create_user("community_student", role=UserProfile.ROLE_STUDENT)
+        self.client.login(username=student.username, password="pass12345")
+        auth_home_response = self.client.get(reverse("core:home"))
+        auth_menu_items = auth_home_response.context["main_menu"]
+        self.assertTrue(any(item["view_name"] == "core:community" for item in auth_menu_items))
