@@ -343,3 +343,27 @@ class SmokeTests(TestCase):
         events_response = self.client.get(reverse("core:my_events"))
         self.assertEqual(events_response.status_code, 200)
         self.assertContains(events_response, "Заявка на мероприятие: Тест")
+
+    def test_join_cta_hidden_when_student_has_active_join_request(self):
+        student = self.create_user("student_join_guard", role=UserProfile.ROLE_STUDENT)
+        CouncilJoinApplication.objects.create(
+            full_name="Тест Студент",
+            email="student_guard@example.com",
+            phone="+79000001111",
+            faculty="it",
+            course="2",
+            motivation="Хочу в студсовет",
+            experience="",
+            status=CouncilJoinApplication.STATUS_IN_REVIEW,
+            user=student,
+        )
+        self.client.login(username=student.username, password="pass12345")
+
+        council_response = self.client.get(reverse("core:council"))
+        self.assertEqual(council_response.status_code, 200)
+        self.assertNotContains(council_response, "Мы ждем тебя в нашей дружной семье")
+        self.assertNotContains(council_response, "Подать заявку")
+
+        join_response = self.client.get(reverse("core:join"))
+        self.assertEqual(join_response.status_code, 302)
+        self.assertEqual(join_response.url, reverse("core:my_join_requests"))

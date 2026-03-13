@@ -26,7 +26,9 @@
         <article class="card">
             <h2>Заявок пока нет</h2>
             <p>Вы еще не подавали заявку на вступление в студсовет.</p>
-            <p><a href="{% url 'core:join' %}">Подать заявку</a></p>
+            {% if show_join_cta %}
+                <p><a href="{% url 'core:join' %}">Подать заявку</a></p>
+            {% endif %}
         </article>
     {% endfor %}
 </div>

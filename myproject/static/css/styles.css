@@ -927,6 +927,114 @@ button:hover {
     background: var(--muiv-accent-dark);
 }
 
+.field-errors {
+    color: var(--muiv-accent-deep);
+    font-size: 0.85rem;
+}
+
+.consent-native-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+.consent-field {
+    margin: 0.6rem 0 1rem;
+}
+
+.consent-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.consent-box {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--muiv-card-border);
+    border-radius: 4px;
+    background: #fff;
+    color: transparent;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.consent-box:hover {
+    background: #fff;
+    border-color: var(--muiv-accent-dark);
+}
+
+.consent-box.is-checked {
+    border-color: var(--muiv-accent-dark);
+    background: #fff3f6;
+    color: var(--muiv-accent-dark);
+}
+
+.consent-check {
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.consent-caption {
+    font-size: 0.78rem;
+    color: var(--muiv-slate);
+}
+
+.consent-captcha {
+    margin-top: 0.6rem;
+    border: 1px solid var(--muiv-card-border);
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+    background: #fbfdff;
+}
+
+.consent-captcha-title {
+    margin: 0 0 0.2rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.consent-captcha-question {
+    margin: 0 0 0.4rem;
+    font-size: 0.84rem;
+}
+
+.consent-captcha-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.consent-captcha-controls input {
+    width: 120px;
+    padding: 0.45rem 0.55rem;
+}
+
+.consent-captcha-controls button {
+    padding: 0.42rem 0.75rem;
+    font-size: 0.82rem;
+}
+
+.consent-cancel-btn {
+    background: #6f8094;
+}
+
+.consent-cancel-btn:hover {
+    background: #5b6f86;
+}
+
+.consent-captcha-error {
+    margin: 0.45rem 0 0;
+    font-size: 0.82rem;
+    color: var(--muiv-accent-deep);
+}
+
 .link-button {
     border: none;
     background: transparent;

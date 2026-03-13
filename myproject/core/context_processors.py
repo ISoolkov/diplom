@@ -1,6 +1,6 @@
 ﻿from django.urls import NoReverseMatch, reverse
 
-from .models import UserProfile
+from .models import CouncilJoinApplication, UserProfile
 from .permissions import get_user_role, has_any_role
 
 AUTHOR_FULL_NAME = "Чубун Илья Валерьевич"
@@ -92,6 +92,22 @@ def navigation_context(request):
     is_staff_admin = has_any_role(request.user, UserProfile.ROLE_ADMIN)
     is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 
+    has_active_join_request = False
+    if request.user.is_authenticated:
+        has_active_join_request = CouncilJoinApplication.objects.filter(
+            user=request.user,
+            status__in=[
+                CouncilJoinApplication.STATUS_NEW,
+                CouncilJoinApplication.STATUS_IN_REVIEW,
+                CouncilJoinApplication.STATUS_APPROVED,
+            ],
+        ).exists()
+
+    show_join_cta = (
+        not request.user.is_authenticated
+        or (not is_staff_panel and not has_active_join_request)
+    )
+
     if is_staff_admin:
         staff_menu_items = STAFF_MENU_ADMIN
     elif user_role == UserProfile.ROLE_MANAGER:
@@ -112,5 +128,7 @@ def navigation_context(request):
         "user_role": user_role,
         "is_staff_admin": is_staff_admin,
         "is_staff_panel": is_staff_panel,
+        "show_join_cta": show_join_cta,
+        "has_active_join_request": has_active_join_request,
     }
 

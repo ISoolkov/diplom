@@ -58,7 +58,7 @@
                                 <span>Регистрация</span>
                             </a>
                         {% endif %}
-                        {% if not is_staff_panel %}
+                        {% if show_join_cta %}
                             <a class="btnCommon btnCommon--red header-btn-apply" href="{% url 'core:join' %}">Вступить в студсовет</a>
                         {% endif %}
                         <a class="social-header-btn" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
@@ -88,7 +88,7 @@
                 <button type="button" class="mobileMenu-close" id="mobileMenuClose" aria-label="Закрыть меню"></button>
             </div>
             <nav class="mobileMenu-body">
-                {% if not is_staff_panel %}
+                {% if show_join_cta %}
                     <a href="{% url 'core:join' %}">Вступить в студсовет</a>
                 {% endif %}
                 {% for item in main_menu %}
@@ -156,7 +156,9 @@
                         <a href="{% url 'core:home' %}">Главная</a>
                         <a href="{% url 'core:council' %}">О студсовете</a>
                         <a href="{% url 'core:community' %}">Соцсеть</a>
-                        <a href="{% url 'core:join' %}">Вступить</a>
+                        {% if show_join_cta %}
+                            <a href="{% url 'core:join' %}">Вступить</a>
+                        {% endif %}
                     </div>
                 </nav>
 

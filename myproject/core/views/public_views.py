@@ -18,6 +18,7 @@ from core.forms import (
 from core.models import (
     CommunityPostPin,
     CommunityPost,
+    CouncilJoinApplication,
     Document,
     Event,
     EventRegistration,
@@ -188,6 +189,19 @@ def feedback_create(request):
 
 
 def join_request_create(request):
+    if request.user.is_authenticated:
+        has_active_join_request = CouncilJoinApplication.objects.filter(
+            user=request.user,
+            status__in=[
+                CouncilJoinApplication.STATUS_NEW,
+                CouncilJoinApplication.STATUS_IN_REVIEW,
+                CouncilJoinApplication.STATUS_APPROVED,
+            ],
+        ).exists()
+        if has_active_join_request:
+            messages.info(request, "У вас уже есть активная заявка на вступление в студсовет.")
+            return redirect("core:my_join_requests")
+
     if request.method == "POST":
         form = CouncilJoinApplicationForm(request.POST)
         if form.is_valid():

@@ -5,7 +5,141 @@
 <p>Создайте аккаунт, чтобы участвовать в обсуждениях, подавать заявки на мероприятия и вступление в студсовет.</p>
 <form method="post" class="form">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% if form.non_field_errors %}
+        <div class="field-errors">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    {% for field in form %}
+        {% if field.name != "consent" %}
+            <p>
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text|safe }}</small>{% endif %}
+                {% if field.errors %}
+                    <span class="field-errors">{{ field.errors }}</span>
+                {% endif %}
+            </p>
+        {% endif %}
+    {% endfor %}
+
+    <div class="consent-field">
+        <label for="{{ form.consent.id_for_label }}">Согласен(на) на обработку персональных данных:</label>
+        <div class="consent-row">
+            {{ form.consent }}
+            <button type="button" class="consent-box" id="consentBox" aria-label="Подтвердить согласие" aria-pressed="false">
+                <span class="consent-check">✓</span>
+            </button>
+            <span class="consent-caption">согласие на обработку персональных данных</span>
+        </div>
+        <div class="consent-captcha" id="consentCaptcha" hidden>
+            <p class="consent-captcha-title">Проверка анти-робот</p>
+            <p class="consent-captcha-question">
+                Решите пример: <strong id="consentCaptchaQuestion"></strong>
+            </p>
+            <div class="consent-captcha-controls">
+                <input type="text" id="consentCaptchaAnswer" inputmode="numeric" placeholder="Ответ">
+                <button type="button" id="consentCaptchaConfirm">Проверить</button>
+                <button type="button" id="consentCaptchaCancel" class="consent-cancel-btn">Отмена</button>
+            </div>
+            <p class="consent-captcha-error" id="consentCaptchaError"></p>
+        </div>
+        {% if form.consent.errors %}
+            <span class="field-errors">{{ form.consent.errors }}</span>
+        {% endif %}
+    </div>
     <button type="submit">Создать аккаунт</button>
 </form>
+
+<script>
+    (function () {
+        var consentInput = document.getElementById('{{ form.consent.id_for_label }}');
+        var consentBox = document.getElementById('consentBox');
+        var captchaWrap = document.getElementById('consentCaptcha');
+        var captchaQuestion = document.getElementById('consentCaptchaQuestion');
+        var captchaAnswer = document.getElementById('consentCaptchaAnswer');
+        var captchaError = document.getElementById('consentCaptchaError');
+        var captchaConfirm = document.getElementById('consentCaptchaConfirm');
+        var captchaCancel = document.getElementById('consentCaptchaCancel');
+        var form = consentInput ? consentInput.form : null;
+        var expected = null;
+
+        if (!consentInput || !consentBox || !captchaWrap || !captchaQuestion || !captchaAnswer || !captchaConfirm) {
+            return;
+        }
+
+        consentInput.classList.add('consent-native-input');
+
+        function syncConsentUI() {
+            var checked = !!consentInput.checked;
+            consentBox.classList.toggle('is-checked', checked);
+            consentBox.setAttribute('aria-pressed', checked ? 'true' : 'false');
+        }
+
+        function openCaptcha() {
+            var a = Math.floor(Math.random() * 8) + 2;
+            var b = Math.floor(Math.random() * 8) + 2;
+            expected = a + b;
+            captchaQuestion.textContent = a + ' + ' + b + ' = ?';
+            captchaAnswer.value = '';
+            captchaError.textContent = '';
+            captchaWrap.hidden = false;
+            captchaAnswer.focus();
+        }
+
+        function closeCaptcha() {
+            captchaWrap.hidden = true;
+            captchaError.textContent = '';
+        }
+
+        consentBox.addEventListener('click', function () {
+            if (consentInput.checked) {
+                consentInput.checked = false;
+                syncConsentUI();
+                closeCaptcha();
+                return;
+            }
+            openCaptcha();
+        });
+
+        captchaConfirm.addEventListener('click', function () {
+            var value = Number(captchaAnswer.value.trim());
+            if (Number.isNaN(value) || value !== expected) {
+                captchaError.textContent = 'Неверный ответ. Попробуйте еще раз.';
+                return;
+            }
+            consentInput.checked = true;
+            syncConsentUI();
+            closeCaptcha();
+        });
+
+        if (captchaCancel) {
+            captchaCancel.addEventListener('click', function () {
+                closeCaptcha();
+            });
+        }
+
+        captchaAnswer.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                captchaConfirm.click();
+            }
+        });
+
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                if (!consentInput.checked) {
+                    event.preventDefault();
+                    captchaError.textContent = 'Подтвердите согласие через проверку анти-робот.';
+                    if (captchaWrap.hidden) {
+                        openCaptcha();
+                    }
+                }
+            });
+        }
+
+        syncConsentUI();
+    })();
+</script>
 {% endblock %}
