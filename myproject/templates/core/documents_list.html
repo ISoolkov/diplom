@@ -1,23 +1,29 @@
-﻿{% extends "base.html" %}
-{% block title %}Документы студсовета{% endblock %}
+{% extends "base.html" %}
+{% block title %}Документы университета{% endblock %}
 {% block content %}
-<h1>Документы студсовета</h1>
-<p>Официальные документы и регламенты работы студенческого совета.</p>
+<h1>Документы университета</h1>
 
-<div class="card-grid">
-    {% for document in documents %}
-        <article class="card">
-            <h2>{{ document.title }}</h2>
-            <p>{{ document.description|default:"Описание будет добавлено позже." }}</p>
-            <p><small>Дата публикации: {{ document.published_at|date:"d.m.Y" }}</small></p>
-            <p><a href="{{ document.file_url }}" target="_blank" rel="noopener">Открыть документ</a></p>
-        </article>
-    {% empty %}
-        <article class="card">
-            <h2>Положение о Студенческом совете</h2>
-            <p>Базовый документ, определяющий цели, задачи и структуру студсовета МУИВ.</p>
-            <p><small>Размер: 612,96 кБ</small></p>
-        </article>
-    {% endfor %}
-</div>
+{% for category, documents in grouped_documents.items %}
+    <section class="section-panel">
+        <h2>{{ category }}</h2>
+        <div class="docs-table">
+            {% for item in documents %}
+                <article class="docs-row">
+                    <div class="docs-meta">
+                        <h3>{{ item.title }}</h3>
+                        <p class="field-note">Файл: {{ item.filename }} · Размер: {{ item.size_kb }} КБ</p>
+                    </div>
+                    <p class="docs-action">
+                        <a href="{{ item.file_url }}" target="_blank" rel="noopener" class="docs-open-btn">Открыть PDF</a>
+                    </p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+{% empty %}
+    <article class="card">
+        <h2>Документы пока не загружены</h2>
+        <p>Добавьте PDF-файлы в папку <code>static/docs</code>, и они появятся на этой странице автоматически.</p>
+    </article>
+{% endfor %}
 {% endblock %}

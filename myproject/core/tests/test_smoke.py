@@ -387,3 +387,9 @@ class SmokeTests(TestCase):
         response = self.client.get(reverse("core:gallery"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/gallery.html")
+
+    def test_documents_page_uses_pdf_buttons(self):
+        response = self.client.get(reverse("core:documents"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/documents_list.html")
+        self.assertContains(response, "Открыть PDF")

@@ -7,6 +7,7 @@ from django.contrib.auth import login
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 
@@ -34,6 +35,38 @@ from core.models import (
 )
 from core.permissions import has_any_role
 from core.services import ServiceValidationError, register_for_event
+
+
+def _document_display_name(filename):
+    names_map = {
+        "Ustav-MUIV-ot-04.10.2023.pdf": "Устав МУИВ (редакция от 04.10.2023)",
+        "лицензия на осуществеление образовательной деятельности.pdf": "Лицензия на осуществление образовательной деятельности",
+        "выписка из реестра лицензий.pdf": "Выписка из реестра лицензий",
+        "Reestrovaya-vypiska.pdf": "Реестровая выписка (госаккредитация)",
+        "Pr.55.-Ob-utverzhdenii-Polozheniya-o-Studencheskom-sovete.pdf": "Положение о Студенческом совете (приказ №55)",
+        "Pravila-vnutrennego-trudovogo-rasporyadka.pdf": "Правила внутреннего трудового распорядка",
+        "Pravila-vnutrennego-rasporyadka-dlya-obuchayushchikhsya-_2_.pdf": "Правила внутреннего распорядка для обучающихся",
+        "Pravila-vnutrennego-rasporyadka-dlya-obuchayushchikhsya-_2_ (1).pdf": "Правила внутреннего распорядка для обучающихся (копия)",
+        "Pr.-59.-Pravila-priema-na-programmy-SPO-v-2025_2026-u.g.pdf": "Правила приема на программы СПО (2025/2026)",
+        "Pr.12.-Ob-utverzhd.-Pravil-priema-na-programmy-VO-v-2025_2026-ucheb.-godu-_1_-_1_.pdf": "Правила приема на программы ВО (2025/2026)",
+        "Pr.47.-Ob-utverzhd.-Pravil-priema-v-Universitet-na-obraz.programmy-SPO-v-....pdf": "Правила приема в Университет на программы СПО (приказ №47)",
+        "Pravila-priema-VO-26_27ug.-doc.pdf": "Правила приема в Университет на программы ВО (2026/2027)",
+        "d743f3286f2c80c2081223561bb0b61c.pdf": "Предписание Рособрнадзора об устранении нарушений",
+        "201d80156b430f65e2ad4204d31382f7.pdf": "Официальный документ университета (скан №1)",
+        "74f19e8d4ee006cd896408aa107a10c0.pdf": "Официальный документ университета (скан №2)",
+    }
+    return names_map.get(filename, filename.rsplit(".", 1)[0].replace("-", " "))
+
+
+def _document_category(filename):
+    lower_name = filename.lower()
+    if any(token in lower_name for token in ("приема", "pravil-priema", "spo", "vo-")):
+        return "Прием и поступление"
+    if any(token in lower_name for token in ("лиценз", "выпис", "reestrovaya")):
+        return "Лицензирование и аккредитация"
+    if any(token in lower_name for token in ("устав", "trudovogo", "rasporyadka", "studencheskom-sovete")):
+        return "Локальные нормативные акты"
+    return "Прочие официальные документы"
 
 
 def home(request):
@@ -159,8 +192,25 @@ def council_info(request):
 
 
 def documents_list(request):
-    docs = Document.objects.filter(is_published=True)
-    return render(request, "core/documents_list.html", {"documents": docs})
+    docs_folder = Path(settings.BASE_DIR) / "static" / "docs"
+    grouped_documents = {}
+    if docs_folder.exists():
+        for file in sorted(docs_folder.glob("*.pdf")):
+            category = _document_category(file.name)
+            grouped_documents.setdefault(category, []).append(
+                {
+                    "title": _document_display_name(file.name),
+                    "file_url": static(f"docs/{file.name}"),
+                    "size_kb": round(file.stat().st_size / 1024, 1),
+                    "filename": file.name,
+                }
+            )
+
+    return render(
+        request,
+        "core/documents_list.html",
+        {"grouped_documents": grouped_documents},
+    )
 
 
 def projects_list(request):
