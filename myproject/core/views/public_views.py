@@ -1,4 +1,8 @@
-﻿from django.contrib import messages
+﻿import random
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import login
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef
@@ -164,6 +168,43 @@ def projects_list(request):
     return render(request, "core/projects_list.html", {"projects": projects})
 
 
+def gallery(request):
+    gallery_dir = Path(settings.BASE_DIR) / "static" / "img" / "gallery"
+    all_images = []
+    if gallery_dir.exists():
+        all_images = sorted(
+            [
+                f"img/gallery/{file.name}"
+                for file in gallery_dir.iterdir()
+                if file.is_file() and file.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+            ]
+        )
+
+    slider_images = []
+    if all_images:
+        system_random = random.SystemRandom()
+        slider_size = min(7, len(all_images))
+        previous_slider = request.session.get("gallery_slider_images", [])
+
+        # Avoid showing the exact same slider set/order as on previous page load.
+        for _ in range(10):
+            candidate = system_random.sample(all_images, slider_size)
+            if candidate != previous_slider:
+                slider_images = candidate
+                break
+
+        if not slider_images:
+            slider_images = system_random.sample(all_images, slider_size)
+
+        request.session["gallery_slider_images"] = slider_images
+
+    return render(
+        request,
+        "core/gallery.html",
+        {"slider_images": slider_images, "all_images": all_images},
+    )
+
+
 def faq_list(request):
     faq_items = FAQ.objects.filter(is_published=True)
     return render(request, "core/faq_list.html", {"faq_items": faq_items})
@@ -322,4 +363,5 @@ def register(request):
     else:
         form = SignUpForm()
     return render(request, "registration/register.html", {"form": form})
+
 

@@ -15,6 +15,7 @@ urlpatterns = [
     path("join/", views.join_request_create, name="join"),
     path("documents/", views.documents_list, name="documents"),
     path("projects/", views.projects_list, name="projects"),
+    path("gallery/", views.gallery, name="gallery"),
     path("faq/", views.faq_list, name="faq"),
     path("feedback/", views.feedback_create, name="feedback"),
     path("register/", views.register, name="register"),

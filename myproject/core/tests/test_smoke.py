@@ -382,3 +382,8 @@ class SmokeTests(TestCase):
         auth_home_response = self.client.get(reverse("core:home"))
         auth_menu_items = auth_home_response.context["main_menu"]
         self.assertTrue(any(item["view_name"] == "core:community" for item in auth_menu_items))
+
+    def test_gallery_page_available(self):
+        response = self.client.get(reverse("core:gallery"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "core/gallery.html")

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Галерея студсовета{% endblock %}
+{% block content %}
+<h1>Галерея студсовета</h1>
+<p>Фотографии с мероприятий, встреч и проектов студенческого совета. В слайдере показаны 7 случайных кадров.</p>
+
+{% if slider_images %}
+    <section class="gallery-slider" id="gallerySlider">
+        <button type="button" class="gallery-slider-btn" id="galleryPrev" aria-label="Предыдущее фото">‹</button>
+        <div class="gallery-slider-frame">
+            {% for image in slider_images %}
+                <img
+                    src="{% static image %}"
+                    alt="Фото студсовета {{ forloop.counter }}"
+                    class="gallery-slide{% if forloop.first %} is-active{% endif %}"
+                >
+            {% endfor %}
+        </div>
+        <button type="button" class="gallery-slider-btn" id="galleryNext" aria-label="Следующее фото">›</button>
+    </section>
+{% endif %}
+
+<h2>Все фото</h2>
+<div class="gallery-grid">
+    {% for image in all_images %}
+        <a href="{% static image %}" target="_blank" rel="noopener" class="gallery-grid-item">
+            <img src="{% static image %}" alt="Фото студсовета {{ forloop.counter }}">
+        </a>
+    {% empty %}
+        <article class="card">
+            <h3>Фото пока не добавлены</h3>
+            <p>Раздел галереи будет заполнен позже.</p>
+        </article>
+    {% endfor %}
+</div>
+
+<script>
+    (function () {
+        var slider = document.getElementById('gallerySlider');
+        if (!slider) {
+            return;
+        }
+
+        var slides = slider.querySelectorAll('.gallery-slide');
+        var prev = document.getElementById('galleryPrev');
+        var next = document.getElementById('galleryNext');
+        var index = 0;
+        var timer = null;
+
+        function showSlide(newIndex) {
+            slides[index].classList.remove('is-active');
+            index = (newIndex + slides.length) % slides.length;
+            slides[index].classList.add('is-active');
+        }
+
+        function startAuto() {
+            timer = window.setInterval(function () {
+                showSlide(index + 1);
+            }, 3500);
+        }
+
+        function resetAuto() {
+            if (timer) {
+                window.clearInterval(timer);
+            }
+            startAuto();
+        }
+
+        if (prev) {
+            prev.addEventListener('click', function () {
+                showSlide(index - 1);
+                resetAuto();
+            });
+        }
+        if (next) {
+            next.addEventListener('click', function () {
+                showSlide(index + 1);
+                resetAuto();
+            });
+        }
+        startAuto();
+    })();
+</script>
+{% endblock %}
