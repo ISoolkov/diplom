@@ -1,7 +1,7 @@
 ﻿from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -393,3 +393,12 @@ class SmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/documents_list.html")
         self.assertContains(response, "Открыть PDF")
+
+    @override_settings(DEBUG=False)
+    def test_custom_404_page_shows_reason_and_suggestions(self):
+        response = self.client.get("/unknowwwn-section/")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+        self.assertContains(response, "Ошибка 404", status_code=404)
+        self.assertContains(response, "В адресе указан неизвестный раздел", status_code=404)

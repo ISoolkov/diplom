@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Страница не найдена{% endblock %}
+
+{% block content %}
+<section class="section-panel">
+    <h1>Ошибка 404</h1>
+    <p><strong>{{ reason_title }}</strong></p>
+    <p>{{ reason_text }}</p>
+    <p><strong>Запрошенный адрес:</strong> <code>{{ request_path }}</code></p>
+</section>
+
+<section class="section-panel">
+    <h2>Что можно сделать</h2>
+    <ul class="info-list">
+        {% for suggestion in suggestions %}
+            <li>
+                {{ suggestion.text }}
+                {% if suggestion.url %}
+                    <a href="{{ suggestion.url }}">{{ suggestion.label }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="section-panel">
+    <h2>Проверка интернет-соединения</h2>
+    <p id="network-status-text">Проверяем состояние сети...</p>
+    <p id="network-status-help" class="field-note"></p>
+</section>
+
+<script>
+    (function () {
+        var statusText = document.getElementById("network-status-text");
+        var statusHelp = document.getElementById("network-status-help");
+
+        if (!statusText || !statusHelp) {
+            return;
+        }
+
+        function updateNetworkStatus() {
+            if (navigator.onLine) {
+                statusText.textContent = "Интернет-соединение активно.";
+                statusHelp.textContent = "Если ошибка сохраняется, проверьте адрес страницы или перейдите в нужный раздел через меню.";
+            } else {
+                statusText.textContent = "Нет подключения к интернету.";
+                statusHelp.textContent = "Проверьте Wi‑Fi/мобильную сеть и попробуйте обновить страницу.";
+            }
+        }
+
+        window.addEventListener("online", updateNetworkStatus);
+        window.addEventListener("offline", updateNetworkStatus);
+        updateNetworkStatus();
+    })();
+</script>
+{% endblock %}

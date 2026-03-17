@@ -21,6 +21,8 @@ from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView
 from django.urls import include, path
 
+handler404 = "core.views.error_views.custom_404"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
