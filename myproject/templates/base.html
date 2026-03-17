@@ -64,6 +64,25 @@
                         <a class="social-header-btn" href="https://vk.com/mosvitte" target="_blank" rel="noopener" aria-label="VK">
                             <span class="icon-header-social icon-header--vk"></span>
                         </a>
+                        <div class="lang-dropdown" id="langDropdown">
+                            <button
+                                type="button"
+                                class="lang-dropdown-toggle"
+                                id="langDropdownToggle"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                aria-controls="langDropdownMenu"
+                            >
+                                <span id="langCurrent">ru</span>
+                                <span class="lang-dropdown-arrow" aria-hidden="true"></span>
+                            </button>
+                            <div class="lang-dropdown-menu" id="langDropdownMenu">
+                                <button type="button" class="lang-dropdown-item" data-lang="ru">ru</button>
+                                <button type="button" class="lang-dropdown-item" data-lang="en">en</button>
+                                <button type="button" class="lang-dropdown-item" data-lang="hi">hi</button>
+                                <button type="button" class="lang-dropdown-item" data-lang="zh">zh</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -228,6 +247,10 @@
             }
 
             function openMenu() {
+                var langDropdown = document.getElementById("langDropdown");
+                if (langDropdown) {
+                    langDropdown.classList.remove("is-open");
+                }
                 menu.classList.add('mobileMenu--open');
                 document.body.classList.add('menu-open');
             }
@@ -242,6 +265,73 @@
             menu.addEventListener('click', function (event) {
                 if (event.target === menu) {
                     closeMenu();
+                }
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            var dropdown = document.getElementById("langDropdown");
+            var toggle = document.getElementById("langDropdownToggle");
+            var currentLangNode = document.getElementById("langCurrent");
+            var menuItems = document.querySelectorAll(".lang-dropdown-item");
+
+            if (!dropdown || !toggle || !currentLangNode || !menuItems.length) {
+                return;
+            }
+
+            function buildYandexTranslateUrl(targetLang) {
+                var targetUrl = encodeURIComponent(window.location.href);
+                return "https://translate.yandex.ru/translate?url=" + targetUrl + "&lang=ru-" + targetLang;
+            }
+
+            function closeLangMenu() {
+                dropdown.classList.remove("is-open");
+                toggle.setAttribute("aria-expanded", "false");
+            }
+
+            function openLangMenu() {
+                dropdown.classList.add("is-open");
+                toggle.setAttribute("aria-expanded", "true");
+            }
+
+            function markActive(lang) {
+                currentLangNode.textContent = lang;
+                menuItems.forEach(function (item) {
+                    item.classList.toggle("is-active", item.getAttribute("data-lang") === lang);
+                });
+            }
+
+            menuItems.forEach(function (item) {
+                item.addEventListener("click", function () {
+                    var lang = item.getAttribute("data-lang");
+                    localStorage.setItem("site_lang", lang);
+                    markActive(lang);
+                    closeLangMenu();
+
+                    if (lang === "ru") {
+                        window.location.href = window.location.pathname + window.location.search + window.location.hash;
+                        return;
+                    }
+
+                    window.location.href = buildYandexTranslateUrl(lang);
+                });
+            });
+
+            var storedLang = localStorage.getItem("site_lang") || "ru";
+            markActive(storedLang);
+
+            toggle.addEventListener("click", function () {
+                if (dropdown.classList.contains("is-open")) {
+                    closeLangMenu();
+                } else {
+                    openLangMenu();
+                }
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!dropdown.contains(event.target)) {
+                    closeLangMenu();
                 }
             });
         })();
