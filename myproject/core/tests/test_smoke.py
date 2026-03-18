@@ -13,7 +13,7 @@ User = get_user_model()
 
 class SmokeTests(TestCase):
     def create_user(self, username, role=UserProfile.ROLE_STUDENT):
-        user = User.objects.create_user(username=username, password="pass12345")
+        user = User.objects.create_user(username=username)
         profile = user.profile
         profile.role = role
         profile.save(update_fields=["role"])
@@ -21,7 +21,7 @@ class SmokeTests(TestCase):
 
     def test_staff_dashboard_forbidden_for_student(self):
         student = self.create_user("student")
-        self.client.login(username=student.username, password="pass12345")
+        self.client.force_login(student)
 
         response = self.client.get(reverse("core:staff_dashboard"))
 
@@ -30,7 +30,7 @@ class SmokeTests(TestCase):
 
     def test_staff_dashboard_available_for_admin(self):
         admin = self.create_user("admin", role=UserProfile.ROLE_ADMIN)
-        self.client.login(username=admin.username, password="pass12345")
+        self.client.force_login(admin)
 
         response = self.client.get(reverse("core:staff_dashboard"))
 
@@ -39,7 +39,7 @@ class SmokeTests(TestCase):
 
     def test_staff_reports_available_for_manager(self):
         manager = self.create_user("manager", role=UserProfile.ROLE_MANAGER)
-        self.client.login(username=manager.username, password="pass12345")
+        self.client.force_login(manager)
 
         response = self.client.get(reverse("core:staff_reports"))
 
@@ -48,7 +48,7 @@ class SmokeTests(TestCase):
 
     def test_staff_users_forbidden_for_manager(self):
         manager = self.create_user("manager_limited", role=UserProfile.ROLE_MANAGER)
-        self.client.login(username=manager.username, password="pass12345")
+        self.client.force_login(manager)
 
         response = self.client.get(reverse("core:staff_users"))
 
@@ -80,7 +80,7 @@ class SmokeTests(TestCase):
             start_at=timezone.now() + timedelta(days=1),
             is_published=True,
         )
-        self.client.login(username=admin.username, password="pass12345")
+        self.client.force_login(admin)
 
         response = self.client.get(reverse("core:export_events_docx"))
 
@@ -96,7 +96,7 @@ class SmokeTests(TestCase):
             subject="Тема",
             message="Текст",
         )
-        self.client.login(username=admin.username, password="pass12345")
+        self.client.force_login(admin)
 
         response = self.client.get(reverse("core:export_feedback_xlsx"))
 
@@ -106,7 +106,7 @@ class SmokeTests(TestCase):
 
     def test_cabinet_for_authorized_user(self):
         user = self.create_user("cabinet_user")
-        self.client.login(username=user.username, password="pass12345")
+        self.client.force_login(user)
 
         response = self.client.get(reverse("core:cabinet"))
 
@@ -124,7 +124,7 @@ class SmokeTests(TestCase):
             registration_deadline=timezone.now() - timedelta(hours=1),
             is_published=True,
         )
-        self.client.login(username=user.username, password="pass12345")
+        self.client.force_login(user)
 
         response = self.client.post(reverse("core:event_detail", kwargs={"pk": event.pk}), {"comment": "Хочу участвовать"})
 
@@ -147,7 +147,7 @@ class SmokeTests(TestCase):
         EventRegistration.objects.create(user=first_user, event=event, comment="")
 
         second_user = self.create_user("second_user")
-        self.client.login(username=second_user.username, password="pass12345")
+        self.client.force_login(second_user)
 
         response = self.client.post(reverse("core:event_detail", kwargs={"pk": event.pk}), {"comment": "Успеть бы"})
 
@@ -165,7 +165,7 @@ class SmokeTests(TestCase):
             start_at=timezone.now() + timedelta(days=3),
             is_published=True,
         )
-        self.client.login(username=manager.username, password="pass12345")
+        self.client.force_login(manager)
 
         new_deadline = (timezone.now() + timedelta(days=2)).replace(second=0, microsecond=0)
         response = self.client.post(
@@ -204,7 +204,7 @@ class SmokeTests(TestCase):
             is_published=True,
         )
 
-        self.client.login(username=user.username, password="pass12345")
+        self.client.force_login(user)
         response = self.client.post(
             reverse("core:event_detail", kwargs={"pk": event.pk}),
             {"comment": "Хочу участвовать"},
@@ -232,7 +232,7 @@ class SmokeTests(TestCase):
             subject="Обычное обращение",
             message="Текст обращения",
         )
-        self.client.login(username=manager.username, password="pass12345")
+        self.client.force_login(manager)
 
         feedbacks_response = self.client.get(reverse("core:staff_feedbacks"))
         self.assertEqual(feedbacks_response.status_code, 200)
@@ -245,7 +245,7 @@ class SmokeTests(TestCase):
 
     def test_student_cannot_create_community_post(self):
         student = self.create_user("student_community", role=UserProfile.ROLE_STUDENT)
-        self.client.login(username=student.username, password="pass12345")
+        self.client.force_login(student)
 
         response = self.client.post(
             reverse("core:community"),
@@ -257,7 +257,7 @@ class SmokeTests(TestCase):
 
     def test_manager_can_create_and_pin_community_post(self):
         manager = self.create_user("manager_community", role=UserProfile.ROLE_MANAGER)
-        self.client.login(username=manager.username, password="pass12345")
+        self.client.force_login(manager)
 
         create_response = self.client.post(
             reverse("core:community"),
@@ -287,7 +287,7 @@ class SmokeTests(TestCase):
         )
 
         student = self.create_user("student_pin_self", role=UserProfile.ROLE_STUDENT)
-        self.client.login(username=student.username, password="pass12345")
+        self.client.force_login(student)
 
         response = self.client.post(
             reverse("core:community"),
@@ -328,7 +328,7 @@ class SmokeTests(TestCase):
             user=student,
         )
 
-        self.client.login(username=manager.username, password="pass12345")
+        self.client.force_login(manager)
 
         feedbacks_response = self.client.get(reverse("core:my_feedbacks"))
         self.assertEqual(feedbacks_response.status_code, 200)
@@ -357,7 +357,7 @@ class SmokeTests(TestCase):
             status=CouncilJoinApplication.STATUS_IN_REVIEW,
             user=student,
         )
-        self.client.login(username=student.username, password="pass12345")
+        self.client.force_login(student)
 
         council_response = self.client.get(reverse("core:council"))
         self.assertEqual(council_response.status_code, 200)
@@ -378,7 +378,7 @@ class SmokeTests(TestCase):
         self.assertFalse(any(item["view_name"] == "core:community" for item in menu_items))
 
         student = self.create_user("community_student", role=UserProfile.ROLE_STUDENT)
-        self.client.login(username=student.username, password="pass12345")
+        self.client.force_login(student)
         auth_home_response = self.client.get(reverse("core:home"))
         auth_menu_items = auth_home_response.context["main_menu"]
         self.assertTrue(any(item["view_name"] == "core:community" for item in auth_menu_items))
@@ -394,6 +394,22 @@ class SmokeTests(TestCase):
         self.assertTemplateUsed(response, "core/documents_list.html")
         self.assertContains(response, "Открыть PDF")
 
+    def test_news_detail_increments_views_count(self):
+        from core.models import News
+
+        news = News.objects.create(
+            title="Тестовая новость",
+            summary="Кратко",
+            content="Полный текст",
+            is_published=True,
+        )
+
+        self.client.get(reverse("core:news_detail", kwargs={"pk": news.pk}))
+        self.client.get(reverse("core:news_detail", kwargs={"pk": news.pk}))
+
+        news.refresh_from_db()
+        self.assertEqual(news.views_count, 2)
+
     @override_settings(DEBUG=False)
     def test_custom_404_page_shows_reason_and_suggestions(self):
         response = self.client.get("/unknowwwn-section/")
@@ -402,3 +418,4 @@ class SmokeTests(TestCase):
         self.assertTemplateUsed(response, "404.html")
         self.assertContains(response, "Ошибка 404", status_code=404)
         self.assertContains(response, "В адресе указан неизвестный раздел", status_code=404)
+

@@ -35,6 +35,7 @@ class News(TimestampedModel):
     image_url = models.URLField(blank=True)
     is_published = models.BooleanField(default=True)
     published_at = models.DateTimeField(default=timezone.now)
+    views_count = models.PositiveIntegerField(default=0, db_index=True)
 
     class Meta:
         ordering = ["-published_at"]

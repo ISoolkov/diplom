@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.core.paginator import Paginator
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, F, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse
@@ -95,6 +95,8 @@ def news_list(request):
 
 def news_detail(request, pk):
     item = get_object_or_404(News, pk=pk, is_published=True)
+    News.objects.filter(pk=item.pk).update(views_count=F("views_count") + 1)
+    item.refresh_from_db(fields=["views_count"])
     return render(request, "core/news_detail.html", {"item": item})
 
 

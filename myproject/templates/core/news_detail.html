@@ -3,7 +3,7 @@
 {% block content %}
 <article class="detail">
     <h1>{{ item.title }}</h1>
-    <p><small>{{ item.published_at|date:"d.m.Y H:i" }}</small></p>
+    <p><small>{{ item.published_at|date:"d.m.Y H:i" }} · Просмотров: {{ item.views_count }}</small></p>
     {% if item.image_url %}
         <img src="{{ item.image_url }}" alt="{{ item.title }}" class="detail-image">
     {% endif %}
