@@ -410,6 +410,46 @@ class SmokeTests(TestCase):
         news.refresh_from_db()
         self.assertEqual(news.views_count, 2)
 
+    def test_unread_moderator_replies_badge_in_header(self):
+        student = self.create_user("student_notify", role=UserProfile.ROLE_STUDENT)
+        FeedbackMessage.objects.create(
+            user=student,
+            name="Студент",
+            email="student_notify@example.com",
+            subject="Проверка уведомления",
+            message="Текст обращения",
+            moderation_comment="Ответ модератора",
+            status=FeedbackMessage.STATUS_RESOLVED,
+        )
+        self.client.force_login(student)
+
+        response = self.client.get(reverse("core:home"))
+
+        self.assertContains(response, "header-notify-badge")
+        self.assertEqual(response.context["unread_moderation_count"], 1)
+
+    def test_moderator_replies_page_marks_notifications_as_seen(self):
+        student = self.create_user("student_seen", role=UserProfile.ROLE_STUDENT)
+        FeedbackMessage.objects.create(
+            user=student,
+            name="Студент",
+            email="student_seen@example.com",
+            subject="Тест ответа",
+            message="Текст обращения",
+            moderation_comment="Обращение обработано",
+            status=FeedbackMessage.STATUS_RESOLVED,
+        )
+        self.client.force_login(student)
+
+        self.client.get(reverse("core:home"))
+        replies_response = self.client.get(reverse("core:moderator_replies"))
+        self.assertEqual(replies_response.status_code, 200)
+        self.assertContains(replies_response, "Ответы модератора")
+        self.assertContains(replies_response, "Обращение обработано")
+
+        home_response = self.client.get(reverse("core:home"))
+        self.assertNotContains(home_response, "header-notify-badge")
+
     @override_settings(DEBUG=False)
     def test_custom_404_page_shows_reason_and_suggestions(self):
         response = self.client.get("/unknowwwn-section/")

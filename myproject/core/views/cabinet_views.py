@@ -2,6 +2,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from core.forms import ProfileUpdateForm, UserFileUploadForm, UserUpdateForm
 from core.models import (
@@ -111,6 +112,50 @@ def my_join_requests(request):
     )
 
 
+
+@login_required
+def moderator_replies(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    feedback_items = FeedbackMessage.objects.filter(
+        user=request.user,
+        moderation_comment__isnull=False,
+    ).exclude(moderation_comment__exact="")
+    join_items = CouncilJoinApplication.objects.filter(
+        user=request.user,
+        moderation_comment__isnull=False,
+    ).exclude(moderation_comment__exact="")
+
+    replies = []
+    for item in feedback_items:
+        replies.append(
+            {
+                "kind": "Обращение",
+                "title": item.subject,
+                "status": item.get_status_display(),
+                "comment": item.moderation_comment,
+                "updated_at": item.updated_at,
+            }
+        )
+
+    for item in join_items:
+        replies.append(
+            {
+                "kind": "Заявка в студсовет",
+                "title": item.full_name,
+                "status": item.get_status_display(),
+                "comment": item.moderation_comment,
+                "updated_at": item.updated_at,
+            }
+        )
+
+    replies.sort(key=lambda row: row["updated_at"], reverse=True)
+
+    profile.moderator_replies_seen_at = timezone.now()
+    profile.save(update_fields=["moderator_replies_seen_at"])
+
+    return render(request, "core/moderator_replies.html", {"replies": replies})
+
 @login_required
 def my_posts(request):
     items = CommunityPost.objects.filter(author=request.user).prefetch_related("comments")
@@ -144,3 +189,6 @@ def download_user_file(request, pk):
         return redirect("core:my_files")
 
     return FileResponse(item.file.open("rb"), as_attachment=True, filename=item.filename)
+
+
+

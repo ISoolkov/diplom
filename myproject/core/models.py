@@ -179,6 +179,11 @@ class UserProfile(models.Model):
     faculty = models.CharField(max_length=120, blank=True)
     course = models.CharField(max_length=20, blank=True)
     telegram = models.CharField(max_length=60, blank=True)
+    moderator_replies_seen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Просмотр ответов модератора",
+    )
 
     def __str__(self):
         return f"Профиль {self.user.username}"

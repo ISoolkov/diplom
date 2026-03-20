@@ -1,6 +1,6 @@
 ﻿from django.urls import NoReverseMatch, reverse
 
-from .models import CouncilJoinApplication, UserProfile
+from .models import CouncilJoinApplication, FeedbackMessage, UserProfile
 from .permissions import get_user_role, has_any_role
 
 AUTHOR_FULL_NAME = "Чубун Илья Валерьевич"
@@ -26,6 +26,7 @@ PAGE_TITLES = {
     "core:my_feedbacks": "Мои обращения",
     "core:my_events": "Мои мероприятия",
     "core:my_join_requests": "Мои заявки в студсовет",
+    "core:moderator_replies": "Ответы модератора",
     "core:my_posts": "Мои публикации",
     "core:my_files": "Мои файлы",
     "core:staff_dashboard": "Админ-панель",
@@ -55,6 +56,7 @@ CABINET_MENU = [
     ("core:my_events", "Мероприятия"),
     ("core:my_feedbacks", "Обращения"),
     ("core:my_join_requests", "Заявки"),
+    ("core:moderator_replies", "Ответы"),
     ("core:my_posts", "Публикации"),
     ("core:my_files", "Файлы"),
 ]
@@ -95,6 +97,7 @@ def navigation_context(request):
     is_staff_panel = has_any_role(request.user, UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 
     has_active_join_request = False
+    unread_moderation_count = 0
     if request.user.is_authenticated:
         has_active_join_request = CouncilJoinApplication.objects.filter(
             user=request.user,
@@ -104,6 +107,24 @@ def navigation_context(request):
                 CouncilJoinApplication.STATUS_APPROVED,
             ],
         ).exists()
+        if not is_staff_panel:
+            profile = getattr(request.user, "profile", None)
+            seen_at = profile.moderator_replies_seen_at if profile else None
+
+            feedback_qs = FeedbackMessage.objects.filter(
+                user=request.user,
+                moderation_comment__isnull=False,
+            ).exclude(moderation_comment__exact="")
+            join_qs = CouncilJoinApplication.objects.filter(
+                user=request.user,
+                moderation_comment__isnull=False,
+            ).exclude(moderation_comment__exact="")
+
+            if seen_at:
+                feedback_qs = feedback_qs.filter(updated_at__gt=seen_at)
+                join_qs = join_qs.filter(updated_at__gt=seen_at)
+
+            unread_moderation_count = feedback_qs.count() + join_qs.count()
 
     show_join_cta = (
         not request.user.is_authenticated
@@ -136,5 +157,6 @@ def navigation_context(request):
         "is_staff_panel": is_staff_panel,
         "show_join_cta": show_join_cta,
         "has_active_join_request": has_active_join_request,
+        "unread_moderation_count": unread_moderation_count,
     }
 

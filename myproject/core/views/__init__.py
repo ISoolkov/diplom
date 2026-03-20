@@ -1,6 +1,7 @@
 ﻿from .cabinet_views import (
     cabinet,
     download_user_file,
+    moderator_replies,
     my_events,
     my_feedbacks,
     my_files,
@@ -50,6 +51,7 @@ __all__ = [
     "gallery",
     "home",
     "join_request_create",
+    "moderator_replies",
     "my_events",
     "my_feedbacks",
     "my_files",

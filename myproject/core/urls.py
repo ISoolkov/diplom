@@ -24,6 +24,7 @@ urlpatterns = [
     path("cabinet/feedbacks/", views.my_feedbacks, name="my_feedbacks"),
     path("cabinet/events/", views.my_events, name="my_events"),
     path("cabinet/join-requests/", views.my_join_requests, name="my_join_requests"),
+    path("cabinet/moderator-replies/", views.moderator_replies, name="moderator_replies"),
     path("cabinet/posts/", views.my_posts, name="my_posts"),
     path("cabinet/files/", views.my_files, name="my_files"),
     path("cabinet/files/<int:pk>/download/", views.download_user_file, name="download_user_file"),
@@ -36,3 +37,4 @@ urlpatterns = [
     path("staff/reports/events.docx", views.export_events_docx, name="export_events_docx"),
     path("staff/reports/feedback.xlsx", views.export_feedback_xlsx, name="export_feedback_xlsx"),
 ]
+

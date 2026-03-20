@@ -198,6 +198,22 @@ canvas {
     margin-left: 0.3rem;
 }
 
+.header-notify-badge {
+    margin-left: 0.4rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muiv-accent-deep);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
 .header-top-row .icon-header {
     width: 30px;
     height: 30px;
@@ -564,6 +580,22 @@ canvas {
     font-weight: 600;
     color: var(--muiv-dark);
     border: none;
+}
+
+.mobile-notify-badge {
+    margin-left: 0.35rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--muiv-accent-deep);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .mobileMenu-body a:hover {

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Ответы модератора | Личный кабинет{% endblock %}
+{% block content %}
+<h1>Ответы модератора</h1>
+<nav class="page-nav">
+    {% for item in cabinet_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<div class="card-grid">
+    {% for item in replies %}
+        <article class="card">
+            <h2>{{ item.kind }}: {{ item.title }}</h2>
+            <p><strong>Статус:</strong> {{ item.status }}</p>
+            <p><strong>Ответ модератора:</strong> {{ item.comment }}</p>
+            <p><small>Обновлено: {{ item.updated_at|date:"d.m.Y H:i" }}</small></p>
+        </article>
+    {% empty %}
+        <article class="card">
+            <h2>Ответов пока нет</h2>
+            <p>Когда модератор обработает ваше обращение или заявку, ответ появится здесь.</p>
+        </article>
+    {% endfor %}
+</div>
+{% endblock %}
