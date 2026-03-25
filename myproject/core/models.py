@@ -334,3 +334,28 @@ class CommunityComment(TimestampedModel):
 
     def __str__(self):
         return f"{self.author} -> {self.post_id}"
+
+
+class ActivityLog(TimestampedModel):
+    ACTION_MAX_LENGTH = 120
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="activity_logs",
+        null=True,
+        blank=True,
+    )
+    action = models.CharField(max_length=ACTION_MAX_LENGTH)
+    details = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Лог активности"
+        verbose_name_plural = "Логи активности"
+
+    def __str__(self):
+        actor = self.actor.username if self.actor_id else "anonymous"
+        return f"{actor}: {self.action}"

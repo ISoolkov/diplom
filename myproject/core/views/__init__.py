@@ -28,6 +28,7 @@ from .public_views import (
 from .staff_views import (
     export_events_docx,
     export_feedback_xlsx,
+    staff_activity_logs,
     staff_dashboard,
     staff_feedbacks,
     staff_faqs,
@@ -47,6 +48,7 @@ __all__ = [
     "events_list",
     "export_events_docx",
     "export_feedback_xlsx",
+    "staff_activity_logs",
     "faq_list",
     "feedback_create",
     "gallery",

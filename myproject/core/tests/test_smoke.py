@@ -5,7 +5,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import CommunityPost, CouncilJoinApplication, Event, EventRegistration, FeedbackMessage, UserProfile
+from core.models import ActivityLog, CommunityPost, CouncilJoinApplication, Event, EventRegistration, FeedbackMessage, UserProfile
 from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 User = get_user_model()
@@ -103,6 +103,37 @@ class SmokeTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("core:home"))
+
+    def test_staff_activity_logs_available_only_for_admin(self):
+        admin = self.create_user("logs_admin", role=UserProfile.ROLE_ADMIN)
+        manager = self.create_user("logs_manager", role=UserProfile.ROLE_MANAGER)
+
+        self.client.force_login(admin)
+        admin_response = self.client.get(reverse("core:staff_activity_logs"))
+        self.assertEqual(admin_response.status_code, 200)
+        self.assertTemplateUsed(admin_response, "core/staff/activity_logs.html")
+
+        self.client.force_login(manager)
+        manager_response = self.client.get(reverse("core:staff_activity_logs"))
+        self.assertEqual(manager_response.status_code, 302)
+        self.assertEqual(manager_response.url, reverse("core:home"))
+
+    def test_staff_activity_log_created_after_faq_create(self):
+        admin = self.create_user("faq_log_admin", role=UserProfile.ROLE_ADMIN)
+        self.client.force_login(admin)
+
+        response = self.client.post(
+            reverse("core:staff_faqs"),
+            {
+                "question": "Логируемый вопрос",
+                "answer": "Логируемый ответ",
+                "order": 1,
+                "is_published": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(ActivityLog.objects.filter(action="staff.faq.created", actor=admin).exists())
 
     def test_feedback_form_creates_message(self):
         response = self.client.post(

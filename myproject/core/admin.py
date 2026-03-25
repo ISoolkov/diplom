@@ -1,6 +1,7 @@
 ﻿from django.contrib import admin
 
 from .models import (
+    ActivityLog,
     CommunityComment,
     CommunityPost,
     CommunityPostPin,
@@ -112,3 +113,10 @@ class CommunityCommentAdmin(admin.ModelAdmin):
 class CommunityPostPinAdmin(admin.ModelAdmin):
     list_display = ("user", "post", "created_at")
     search_fields = ("user__username", "post__title")
+
+
+@admin.register(ActivityLog)
+class ActivityLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "actor", "action", "ip_address")
+    list_filter = ("action", "created_at")
+    search_fields = ("actor__username", "action", "details", "ip_address")

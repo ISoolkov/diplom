@@ -4,6 +4,7 @@ from .events_service import (
     ensure_can_register,
     register_for_event,
 )
+from .activity_service import log_user_activity
 from .moderation_service import (
     update_feedback_status,
     update_join_request_status,
@@ -18,6 +19,7 @@ __all__ = [
     "build_events_docx",
     "build_feedback_xlsx",
     "EVENT_REGISTRATION_SUBJECT_PREFIX",
+    "log_user_activity",
     "ensure_can_register",
     "register_for_event",
     "update_feedback_status",

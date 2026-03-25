@@ -34,7 +34,7 @@ from core.models import (
     UserProfile,
 )
 from core.permissions import has_any_role
-from core.services import ServiceValidationError, register_for_event
+from core.services import ServiceValidationError, log_user_activity, register_for_event
 
 
 def _document_display_name(filename):
@@ -130,6 +130,7 @@ def events_list(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Анонс мероприятия обновлен.")
+            log_user_activity(request, "event.announcement.updated", f"event_id={event.id}")
             target_url = reverse("core:events_list")
             if archive:
                 target_url = f"{target_url}?archive=1"
@@ -177,6 +178,7 @@ def event_detail(request, pk):
                     messages.error(request, str(exc))
                 else:
                     messages.success(request, "Заявка на мероприятие отправлена.")
+                    log_user_activity(request, "event.registration.created", f"event_id={event.id}")
                     return redirect("core:event_detail", pk=event.pk)
         else:
             form = EventRegistrationForm()
@@ -271,6 +273,7 @@ def feedback_create(request):
                 item.user = request.user
             item.save()
             messages.success(request, "Ваше обращение отправлено. Спасибо за обратную связь.")
+            log_user_activity(request, "feedback.created", f"feedback_id={item.id}")
             return redirect("core:feedback")
     else:
         initial = {}
@@ -303,6 +306,7 @@ def join_request_create(request):
                 item.user = request.user
             item.save()
             messages.success(request, "Заявка на вступление в студсовет отправлена.")
+            log_user_activity(request, "join_request.created", f"join_id={item.id}")
             return redirect("core:join")
     else:
         initial = {}
@@ -342,6 +346,7 @@ def community_feed(request):
                 post.author = request.user
                 post.save()
                 messages.success(request, "Публикация добавлена в соцсеть.")
+                log_user_activity(request, "community.post.created", f"post_id={post.id}")
                 return redirect(f"{reverse('core:community')}#post-{post.id}")
 
         if "toggle_pin" in request.POST:
@@ -349,9 +354,11 @@ def community_feed(request):
             pin, created = CommunityPostPin.objects.get_or_create(user=request.user, post=post)
             if created:
                 messages.success(request, "Публикация закреплена у вас.")
+                log_user_activity(request, "community.post.pinned_personal", f"post_id={post.id}")
             else:
                 pin.delete()
                 messages.success(request, "Публикация откреплена у вас.")
+                log_user_activity(request, "community.post.unpinned_personal", f"post_id={post.id}")
             return redirect(f"{reverse('core:community')}#post-{post.id}")
 
         if "toggle_global_pin" in request.POST:
@@ -362,6 +369,11 @@ def community_feed(request):
             post.is_pinned = not post.is_pinned
             post.save(update_fields=["is_pinned", "updated_at"])
             messages.success(request, "Глобальное закрепление публикации обновлено.")
+            log_user_activity(
+                request,
+                "community.post.pinned_global_toggled",
+                f"post_id={post.id}; pinned={post.is_pinned}",
+            )
             return redirect(f"{reverse('core:community')}#post-{post.id}")
 
         if "add_comment" in request.POST:
@@ -374,6 +386,7 @@ def community_feed(request):
                 comment.post = post
                 comment.save()
                 messages.success(request, "Комментарий опубликован.")
+                log_user_activity(request, "community.comment.created", f"comment_id={comment.id}; post_id={post.id}")
                 return redirect(f"{reverse('core:community')}#post-{post.id}")
 
     posts = CommunityPost.objects.filter(is_published=True).select_related("author").prefetch_related("comments__author")
@@ -411,6 +424,7 @@ def register(request):
             profile.save(update_fields=["role"])
             login(request, user)
             messages.success(request, "Регистрация выполнена успешно.")
+            log_user_activity(request, "user.registered", f"user={user.username}")
             return redirect("core:cabinet")
     else:
         form = SignUpForm()

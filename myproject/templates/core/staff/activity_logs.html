@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Логи активности{% endblock %}
+{% block content %}
+<h1>Логи активности пользователей</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<section class="section-panel">
+    <p>Раздел доступен только администратору. Показаны последние 300 событий.</p>
+</section>
+
+<section>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Пользователь</th>
+                    <th>Действие</th>
+                    <th>Детали</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.created_at|date:"d.m.Y H:i:s" }}</td>
+                        <td>
+                            {% if item.actor %}
+                                {{ item.actor.username }}
+                            {% else %}
+                                Аноним
+                            {% endif %}
+                        </td>
+                        <td>{{ item.action }}</td>
+                        <td>{{ item.details|default:"-" }}</td>
+                        <td>{{ item.ip_address|default:"-" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">Пока нет записей.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

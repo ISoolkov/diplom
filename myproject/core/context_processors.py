@@ -35,6 +35,7 @@ PAGE_TITLES = {
     "core:staff_users": "Пользователи и роли",
     "core:staff_files": "Файловое хранилище",
     "core:staff_faqs": "Управление FAQ",
+    "core:staff_activity_logs": "Логи активности",
     "core:staff_reports": "Экспорт отчетов",
 }
 
@@ -69,6 +70,7 @@ STAFF_MENU_ADMIN = [
     ("core:staff_users", "Пользователи"),
     ("core:staff_files", "Файлы"),
     ("core:staff_faqs", "FAQ"),
+    ("core:staff_activity_logs", "Логи"),
     ("core:staff_reports", "Отчеты"),
 ]
 

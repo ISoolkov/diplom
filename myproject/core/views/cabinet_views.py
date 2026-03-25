@@ -14,7 +14,7 @@ from core.models import (
     UserProfile,
 )
 from core.permissions import has_any_role
-from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
+from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX, log_user_activity
 
 
 @login_required
@@ -57,6 +57,7 @@ def profile_edit(request):
             user_form.save()
             profile_form.save()
             messages.success(request, "Профиль обновлен.")
+            log_user_activity(request, "cabinet.profile.updated")
             return redirect("core:profile_edit")
     else:
         user_form = UserUpdateForm(instance=request.user)
@@ -171,6 +172,7 @@ def my_files(request):
             item.owner = request.user
             item.save()
             messages.success(request, "Файл загружен в хранилище.")
+            log_user_activity(request, "cabinet.file.uploaded", f"file_id={item.id}")
             return redirect("core:my_files")
     else:
         form = UserFileUploadForm()
@@ -188,6 +190,7 @@ def download_user_file(request, pk):
         messages.error(request, "Недостаточно прав для скачивания этого файла.")
         return redirect("core:my_files")
 
+    log_user_activity(request, "cabinet.file.downloaded", f"file_id={item.id}")
     return FileResponse(item.file.open("rb"), as_attachment=True, filename=item.filename)
 
 

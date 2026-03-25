@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from core.forms import FAQManageForm
-from core.models import CouncilJoinApplication, Event, FAQ, FeedbackMessage, News, UserFile, UserProfile
+from core.models import ActivityLog, CouncilJoinApplication, Event, FAQ, FeedbackMessage, News, UserFile, UserProfile
 from core.permissions import role_required
 from core.services import (
     EVENT_REGISTRATION_SUBJECT_PREFIX,
@@ -17,6 +17,7 @@ from core.services import (
     build_feedback_xlsx,
     update_feedback_status,
     update_join_request_status,
+    log_user_activity,
     update_user_role,
 )
 
@@ -67,6 +68,11 @@ def staff_feedbacks(request):
             messages.error(request, str(exc))
         else:
             messages.success(request, "Статус обращения обновлен.")
+            log_user_activity(
+                request,
+                "moderation.feedback.updated",
+                f"feedback_id={item.id}; status={new_status}",
+            )
         return redirect("core:staff_feedbacks")
 
     items = FeedbackMessage.objects.select_related("user").exclude(
@@ -93,6 +99,11 @@ def staff_join_requests(request):
                 messages.error(request, str(exc))
             else:
                 messages.success(request, "Статус заявки на мероприятие обновлен.")
+                log_user_activity(
+                    request,
+                    "moderation.event_request.updated",
+                    f"feedback_id={item.id}; status={new_status}",
+                )
         else:
             item = get_object_or_404(CouncilJoinApplication, pk=request.POST.get("join_id"))
             new_status = request.POST.get("status", "")
@@ -104,6 +115,11 @@ def staff_join_requests(request):
                 messages.error(request, str(exc))
             else:
                 messages.success(request, "Статус заявки обновлен.")
+                log_user_activity(
+                    request,
+                    "moderation.join_request.updated",
+                    f"join_id={item.id}; status={new_status}",
+                )
         return redirect("core:staff_join_requests")
 
     items = CouncilJoinApplication.objects.select_related("user")
@@ -129,6 +145,11 @@ def staff_users(request):
             messages.error(request, str(exc))
         else:
             messages.success(request, f"Роль пользователя {profile.user.username} обновлена.")
+            log_user_activity(
+                request,
+                "staff.user_role.updated",
+                f"user={profile.user.username}; role={new_role}",
+            )
         return redirect("core:staff_users")
 
     profiles = UserProfile.objects.select_related("user").order_by("user__username")
@@ -142,6 +163,11 @@ def staff_files(request):
         item.file.delete(save=False)
         item.delete()
         messages.success(request, "Файл удален из хранилища.")
+        log_user_activity(
+            request,
+            "staff.file.deleted",
+            f"file_id={item.id}; owner={item.owner.username}",
+        )
         return redirect("core:staff_files")
 
     items = UserFile.objects.select_related("owner", "owner__profile")
@@ -167,9 +193,11 @@ def staff_faqs(request):
 
         if action == "delete":
             item = get_object_or_404(FAQ, pk=request.POST.get("faq_id"))
+            item_id = item.id
             item.delete()
             _normalize_faq_order()
             messages.success(request, "Пункт FAQ удален.")
+            log_user_activity(request, "staff.faq.deleted", f"faq_id={item_id}")
             return redirect("core:staff_faqs")
 
         if action in {"move_up", "move_down"}:
@@ -188,6 +216,11 @@ def staff_faqs(request):
                     swap_with.save(update_fields=["order"])
                 _normalize_faq_order()
                 messages.success(request, "Порядок FAQ обновлен.")
+                log_user_activity(
+                    request,
+                    "staff.faq.reordered",
+                    f"faq_id={item.id}; action={action}",
+                )
             else:
                 messages.info(request, "Перемещение невозможно.")
             return redirect("core:staff_faqs")
@@ -199,6 +232,7 @@ def staff_faqs(request):
             faq_item.save()
             _normalize_faq_order()
             messages.success(request, "Раздел FAQ добавлен.")
+            log_user_activity(request, "staff.faq.created", f"faq_id={faq_item.id}")
             return redirect("core:staff_faqs")
         messages.error(request, "Проверьте поля формы FAQ.")
     else:
@@ -217,6 +251,7 @@ def export_events_docx(request):
         return redirect("core:staff_reports")
 
     filename = f"events_report_{timezone.localdate().isoformat()}.docx"
+    log_user_activity(request, "staff.report.export_docx", f"filename={filename}")
     return FileResponse(output, as_attachment=True, filename=filename)
 
 
@@ -229,6 +264,13 @@ def export_feedback_xlsx(request):
         return redirect("core:staff_reports")
 
     filename = f"feedback_report_{timezone.localdate().isoformat()}.xlsx"
+    log_user_activity(request, "staff.report.export_xlsx", f"filename={filename}")
     return FileResponse(output, as_attachment=True, filename=filename)
+
+
+@role_required(UserProfile.ROLE_ADMIN)
+def staff_activity_logs(request):
+    items = ActivityLog.objects.select_related("actor")[:300]
+    return render(request, "core/staff/activity_logs.html", {"items": items})
 
 
