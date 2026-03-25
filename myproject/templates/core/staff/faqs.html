@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Управление FAQ{% endblock %}
 {% block content %}
 <h1>Управление FAQ</h1>
@@ -30,6 +30,29 @@
                 <p><strong>Порядок:</strong> {{ item.order }}</p>
                 <p><strong>Статус:</strong> {% if item.is_published %}Опубликовано{% else %}Скрыто{% endif %}</p>
                 <div>{{ item.answer|linebreaks }}</div>
+
+                <div class="inline-controls">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="move_up">
+                        <input type="hidden" name="faq_id" value="{{ item.id }}">
+                        <button type="submit">Вверх</button>
+                    </form>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="move_down">
+                        <input type="hidden" name="faq_id" value="{{ item.id }}">
+                        <button type="submit">Вниз</button>
+                    </form>
+
+                    <form method="post" onsubmit="return confirm('Удалить этот пункт FAQ?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="faq_id" value="{{ item.id }}">
+                        <button type="submit">Удалить</button>
+                    </form>
+                </div>
             </article>
         {% empty %}
             <article class="card">

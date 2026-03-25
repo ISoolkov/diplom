@@ -1,13 +1,13 @@
 ﻿from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Count
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from core.forms import FAQManageForm
-from core.models import CouncilJoinApplication, Event, FeedbackMessage, News, UserFile, UserProfile
-from core.models import FAQ
+from core.models import CouncilJoinApplication, Event, FAQ, FeedbackMessage, News, UserFile, UserProfile
 from core.permissions import role_required
 from core.services import (
     EVENT_REGISTRATION_SUBJECT_PREFIX,
@@ -21,6 +21,14 @@ from core.services import (
 )
 
 User = get_user_model()
+
+
+def _normalize_faq_order():
+    """Приводит порядок FAQ к последовательности 1..N без дублей."""
+    items = list(FAQ.objects.order_by("order", "id"))
+    for index, item in enumerate(items, start=1):
+        if item.order != index:
+            FAQ.objects.filter(pk=item.pk).update(order=index)
 
 
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
@@ -152,17 +160,51 @@ def staff_reports(request):
 
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_faqs(request):
+    _normalize_faq_order()
+
     if request.method == "POST":
+        action = request.POST.get("action", "create")
+
+        if action == "delete":
+            item = get_object_or_404(FAQ, pk=request.POST.get("faq_id"))
+            item.delete()
+            _normalize_faq_order()
+            messages.success(request, "Пункт FAQ удален.")
+            return redirect("core:staff_faqs")
+
+        if action in {"move_up", "move_down"}:
+            item = get_object_or_404(FAQ, pk=request.POST.get("faq_id"))
+            if action == "move_up":
+                swap_with = FAQ.objects.filter(order__lt=item.order).order_by("-order", "-id").first()
+            else:
+                swap_with = FAQ.objects.filter(order__gt=item.order).order_by("order", "id").first()
+
+            if swap_with:
+                with transaction.atomic():
+                    item_order = item.order
+                    item.order = swap_with.order
+                    swap_with.order = item_order
+                    item.save(update_fields=["order"])
+                    swap_with.save(update_fields=["order"])
+                _normalize_faq_order()
+                messages.success(request, "Порядок FAQ обновлен.")
+            else:
+                messages.info(request, "Перемещение невозможно.")
+            return redirect("core:staff_faqs")
+
         form = FAQManageForm(request.POST)
         if form.is_valid():
-            form.save()
+            faq_item = form.save(commit=False)
+            faq_item.order = FAQ.objects.count() + 1
+            faq_item.save()
+            _normalize_faq_order()
             messages.success(request, "Раздел FAQ добавлен.")
             return redirect("core:staff_faqs")
         messages.error(request, "Проверьте поля формы FAQ.")
     else:
         form = FAQManageForm()
 
-    items = FAQ.objects.order_by("order", "question")
+    items = FAQ.objects.order_by("order", "id")
     return render(request, "core/staff/faqs.html", {"form": form, "items": items})
 
 
@@ -188,3 +230,5 @@ def export_feedback_xlsx(request):
 
     filename = f"feedback_report_{timezone.localdate().isoformat()}.xlsx"
     return FileResponse(output, as_attachment=True, filename=filename)
+
+

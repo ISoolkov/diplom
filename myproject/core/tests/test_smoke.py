@@ -69,6 +69,32 @@ class SmokeTests(TestCase):
 
         self.assertTrue(FAQ.objects.filter(question="Как записаться на мероприятие?").exists())
 
+    def test_staff_faqs_manager_can_reorder_and_delete_items(self):
+        from core.models import FAQ
+
+        manager = self.create_user("faq_manager_actions", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+
+        first = FAQ.objects.create(question="Q1", answer="A1", order=1, is_published=True)
+        second = FAQ.objects.create(question="Q2", answer="A2", order=2, is_published=True)
+
+        move_response = self.client.post(
+            reverse("core:staff_faqs"),
+            {"action": "move_down", "faq_id": first.id},
+        )
+        self.assertEqual(move_response.status_code, 302)
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertEqual(first.order, 2)
+        self.assertEqual(second.order, 1)
+
+        delete_response = self.client.post(
+            reverse("core:staff_faqs"),
+            {"action": "delete", "faq_id": first.id},
+        )
+        self.assertEqual(delete_response.status_code, 302)
+        self.assertFalse(FAQ.objects.filter(pk=first.id).exists())
+
     def test_staff_users_forbidden_for_manager(self):
         manager = self.create_user("manager_limited", role=UserProfile.ROLE_MANAGER)
         self.client.force_login(manager)
