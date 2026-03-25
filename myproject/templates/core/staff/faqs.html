@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Управление FAQ{% endblock %}
+{% block content %}
+<h1>Управление FAQ</h1>
+<nav class="page-nav">
+    {% for item in staff_menu %}
+        <a href="{{ item.url }}" class="{% if request.resolver_match.view_name == item.view_name %}is-active{% endif %}">
+            {{ item.label }}
+        </a>
+    {% endfor %}
+</nav>
+
+<section class="section-panel">
+    <h2>Добавить новый пункт FAQ</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p>{{ form.question.label_tag }} {{ form.question }}</p>
+        <p>{{ form.answer.label_tag }} {{ form.answer }}</p>
+        <p>{{ form.order.label_tag }} {{ form.order }}</p>
+        <button type="submit">Добавить</button>
+    </form>
+</section>
+
+<section>
+    <h2>Текущие пункты FAQ</h2>
+    <div class="card-grid">
+        {% for item in items %}
+            <article class="card">
+                <h3>{{ item.question }}</h3>
+                <p><strong>Порядок:</strong> {{ item.order }}</p>
+                <p><strong>Статус:</strong> {% if item.is_published %}Опубликовано{% else %}Скрыто{% endif %}</p>
+                <div>{{ item.answer|linebreaks }}</div>
+            </article>
+        {% empty %}
+            <article class="card">
+                <p>Пунктов FAQ пока нет.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

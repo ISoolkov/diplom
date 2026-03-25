@@ -46,6 +46,29 @@ class SmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/staff/reports.html")
 
+    def test_staff_faqs_available_for_manager_and_can_create_item(self):
+        manager = self.create_user("faq_manager", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+
+        page_response = self.client.get(reverse("core:staff_faqs"))
+        self.assertEqual(page_response.status_code, 200)
+        self.assertTemplateUsed(page_response, "core/staff/faqs.html")
+
+        create_response = self.client.post(
+            reverse("core:staff_faqs"),
+            {
+                "question": "Как записаться на мероприятие?",
+                "answer": "Откройте карточку события и нажмите кнопку регистрации.",
+                "order": 10,
+                "is_published": "on",
+            },
+        )
+        self.assertEqual(create_response.status_code, 302)
+
+        from core.models import FAQ
+
+        self.assertTrue(FAQ.objects.filter(question="Как записаться на мероприятие?").exists())
+
     def test_staff_users_forbidden_for_manager(self):
         manager = self.create_user("manager_limited", role=UserProfile.ROLE_MANAGER)
         self.client.force_login(manager)

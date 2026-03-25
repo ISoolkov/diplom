@@ -8,6 +8,7 @@ from .models import (
     CouncilJoinApplication,
     Event,
     EventRegistration,
+    FAQ,
     FeedbackMessage,
     UserFile,
     UserProfile,
@@ -195,4 +196,20 @@ class UserFileUploadForm(forms.ModelForm):
         }
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+
+class FAQManageForm(forms.ModelForm):
+    class Meta:
+        model = FAQ
+        fields = ("question", "answer", "order", "is_published")
+        labels = {
+            "question": "Вопрос",
+            "answer": "Ответ",
+            "order": "Порядок",
+            "is_published": "Опубликовано",
+        }
+        widgets = {
+            "answer": forms.Textarea(attrs={"rows": 4}),
+            "order": forms.NumberInput(attrs={"min": 0}),
         }

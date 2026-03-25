@@ -5,7 +5,9 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from core.forms import FAQManageForm
 from core.models import CouncilJoinApplication, Event, FeedbackMessage, News, UserFile, UserProfile
+from core.models import FAQ
 from core.permissions import role_required
 from core.services import (
     EVENT_REGISTRATION_SUBJECT_PREFIX,
@@ -146,6 +148,22 @@ def staff_reports(request):
         "generated_at": timezone.now(),
     }
     return render(request, "core/staff/reports.html", context)
+
+
+@role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
+def staff_faqs(request):
+    if request.method == "POST":
+        form = FAQManageForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Раздел FAQ добавлен.")
+            return redirect("core:staff_faqs")
+        messages.error(request, "Проверьте поля формы FAQ.")
+    else:
+        form = FAQManageForm()
+
+    items = FAQ.objects.order_by("order", "question")
+    return render(request, "core/staff/faqs.html", {"form": form, "items": items})
 
 
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)

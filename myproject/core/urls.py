@@ -33,6 +33,7 @@ urlpatterns = [
     path("staff/join-requests/", views.staff_join_requests, name="staff_join_requests"),
     path("staff/users/", views.staff_users, name="staff_users"),
     path("staff/files/", views.staff_files, name="staff_files"),
+    path("staff/faqs/", views.staff_faqs, name="staff_faqs"),
     path("staff/reports/", views.staff_reports, name="staff_reports"),
     path("staff/reports/events.docx", views.export_events_docx, name="export_events_docx"),
     path("staff/reports/feedback.xlsx", views.export_feedback_xlsx, name="export_feedback_xlsx"),

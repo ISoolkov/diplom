@@ -34,6 +34,7 @@ PAGE_TITLES = {
     "core:staff_join_requests": "Модерация заявок",
     "core:staff_users": "Пользователи и роли",
     "core:staff_files": "Файловое хранилище",
+    "core:staff_faqs": "Управление FAQ",
     "core:staff_reports": "Экспорт отчетов",
 }
 
@@ -67,6 +68,7 @@ STAFF_MENU_ADMIN = [
     ("core:staff_join_requests", "Заявки"),
     ("core:staff_users", "Пользователи"),
     ("core:staff_files", "Файлы"),
+    ("core:staff_faqs", "FAQ"),
     ("core:staff_reports", "Отчеты"),
 ]
 
@@ -74,6 +76,7 @@ STAFF_MENU_MANAGER = [
     ("core:staff_dashboard", "Дашборд"),
     ("core:staff_feedbacks", "Обращения"),
     ("core:staff_join_requests", "Заявки"),
+    ("core:staff_faqs", "FAQ"),
     ("core:staff_reports", "Отчеты"),
 ]
 
