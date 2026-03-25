@@ -268,6 +268,29 @@ class SmokeTests(TestCase):
         self.assertEqual(event.max_participants, 150)
         self.assertIsNotNone(event.registration_deadline)
 
+    def test_admin_and_manager_can_create_event_from_events_list(self):
+        for username, role in (
+            ("events_admin_create", UserProfile.ROLE_ADMIN),
+            ("events_manager_create", UserProfile.ROLE_MANAGER),
+        ):
+            with self.subTest(role=role):
+                user = self.create_user(username, role=role)
+                self.client.force_login(user)
+                response = self.client.post(
+                    reverse("core:events_list"),
+                    {
+                        "action": "create",
+                        "title": f"Новое событие {role}",
+                        "short_description": "Краткий анонс",
+                        "location": "Аудитория 100",
+                        "start_at": (timezone.now() + timedelta(days=5)).strftime("%Y-%m-%dT%H:%M"),
+                        "registration_deadline": (timezone.now() + timedelta(days=4)).strftime("%Y-%m-%dT%H:%M"),
+                        "max_participants": "120",
+                    },
+                )
+                self.assertEqual(response.status_code, 302)
+                self.assertTrue(Event.objects.filter(title=f"Новое событие {role}").exists())
+
     def test_event_registration_creates_auto_moderation_request(self):
         user = self.create_user("student_event")
         user.first_name = "Илья"

@@ -115,6 +115,7 @@ def events_list(request):
         queryset = queryset.filter(start_at__gte=timezone.now()).order_by("start_at")
 
     events = list(queryset)
+    create_form = EventManageForm()
     invalid_form_event_id = None
 
     if request.method == "POST":
@@ -125,19 +126,33 @@ def events_list(request):
                 target_url = f"{target_url}?archive=1"
             return redirect(target_url)
 
-        event = get_object_or_404(Event, pk=request.POST.get("event_id"), is_published=True)
-        form = EventManageForm(request.POST, instance=event)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Анонс мероприятия обновлен.")
-            log_user_activity(request, "event.announcement.updated", f"event_id={event.id}")
-            target_url = reverse("core:events_list")
-            if archive:
-                target_url = f"{target_url}?archive=1"
-            return redirect(target_url)
+        action = request.POST.get("action", "update")
+        if action == "create":
+            create_form = EventManageForm(request.POST)
+            if create_form.is_valid():
+                event = create_form.save(commit=False)
+                # Полное описание заполняем базовым текстом из анонса.
+                event.description = event.short_description
+                event.is_published = True
+                event.save()
+                messages.success(request, "Новое мероприятие добавлено.")
+                log_user_activity(request, "event.announcement.created", f"event_id={event.id}")
+                return redirect("core:events_list")
+            messages.error(request, "Проверьте поля формы нового мероприятия.")
+        else:
+            event = get_object_or_404(Event, pk=request.POST.get("event_id"), is_published=True)
+            form = EventManageForm(request.POST, instance=event)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Анонс мероприятия обновлен.")
+                log_user_activity(request, "event.announcement.updated", f"event_id={event.id}")
+                target_url = reverse("core:events_list")
+                if archive:
+                    target_url = f"{target_url}?archive=1"
+                return redirect(target_url)
 
-        messages.error(request, "Проверьте поля формы и попробуйте снова.")
-        invalid_form_event_id = event.pk
+            messages.error(request, "Проверьте поля формы и попробуйте снова.")
+            invalid_form_event_id = event.pk
 
     if can_manage_events:
         for event in events:
@@ -153,6 +168,7 @@ def events_list(request):
             "events": events,
             "archive": archive,
             "can_manage_events": can_manage_events,
+            "create_form": create_form,
         },
     )
 

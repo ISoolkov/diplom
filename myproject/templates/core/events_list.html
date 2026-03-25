@@ -7,6 +7,18 @@
     <a href="{% url 'core:events_list' %}?archive=1">Архив мероприятий</a>
 </p>
 
+{% if can_manage_events %}
+    <section class="section-panel">
+        <h2>Добавить мероприятие</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            {{ create_form.as_p }}
+            <button type="submit">Добавить мероприятие</button>
+        </form>
+    </section>
+{% endif %}
+
 <div class="card-grid">
     {% for event in events %}
         <article class="card">
@@ -27,6 +39,7 @@
                     <summary>Редактировать анонс</summary>
                     <form method="post">
                         {% csrf_token %}
+                        <input type="hidden" name="action" value="update">
                         <input type="hidden" name="event_id" value="{{ event.id }}">
                         <input type="hidden" name="archive" value="{% if archive %}1{% else %}0{% endif %}">
                         {{ event.edit_form.as_p }}
