@@ -21,6 +21,7 @@ PAGE_TITLES = {
     "core:feedback": "Обратная связь",
     "login": "Вход",
     "core:register": "Регистрация",
+    "core:maintenance": "Техническое обслуживание",
     "core:cabinet": "Личный кабинет",
     "core:profile_edit": "Профиль",
     "core:my_feedbacks": "Мои обращения",

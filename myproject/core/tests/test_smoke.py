@@ -5,7 +5,16 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import ActivityLog, CommunityPost, CouncilJoinApplication, Event, EventRegistration, FeedbackMessage, UserProfile
+from core.models import (
+    ActivityLog,
+    CommunityPost,
+    CouncilJoinApplication,
+    Event,
+    EventRegistration,
+    FeedbackMessage,
+    SiteMaintenance,
+    UserProfile,
+)
 from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 User = get_user_model()
@@ -290,6 +299,42 @@ class SmokeTests(TestCase):
                 )
                 self.assertEqual(response.status_code, 302)
                 self.assertTrue(Event.objects.filter(title=f"Новое событие {role}").exists())
+
+    def test_admin_can_enable_maintenance_mode(self):
+        admin = self.create_user("maintenance_admin", role=UserProfile.ROLE_ADMIN)
+        self.client.force_login(admin)
+
+        response = self.client.post(
+            reverse("core:staff_dashboard"),
+            {
+                "action": "enable_maintenance",
+                "maintenance_ends_at": (timezone.now() + timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M:%S"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        settings_obj = SiteMaintenance.objects.get(pk=1)
+        self.assertTrue(settings_obj.maintenance_enabled)
+        self.assertIsNotNone(settings_obj.maintenance_ends_at)
+
+    def test_non_admin_redirected_to_maintenance_when_enabled(self):
+        SiteMaintenance.objects.update_or_create(
+            pk=1,
+            defaults={
+                "maintenance_enabled": True,
+                "maintenance_ends_at": timezone.now() + timedelta(hours=2),
+            },
+        )
+
+        response = self.client.get(reverse("core:home"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("core:maintenance"))
+
+        manager = self.create_user("maintenance_manager", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+        manager_response = self.client.get(reverse("core:staff_dashboard"))
+        self.assertEqual(manager_response.status_code, 302)
+        self.assertEqual(manager_response.url, reverse("core:maintenance"))
 
     def test_event_registration_creates_auto_moderation_request(self):
         user = self.create_user("student_event")

@@ -359,3 +359,20 @@ class ActivityLog(TimestampedModel):
     def __str__(self):
         actor = self.actor.username if self.actor_id else "anonymous"
         return f"{actor}: {self.action}"
+
+
+class SiteMaintenance(models.Model):
+    maintenance_enabled = models.BooleanField(default=False, verbose_name="Режим техобслуживания")
+    maintenance_ends_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Ориентировочное окончание",
+    )
+
+    class Meta:
+        verbose_name = "Техобслуживание сайта"
+        verbose_name_plural = "Техобслуживание сайта"
+
+    def __str__(self):
+        status = "включено" if self.maintenance_enabled else "выключено"
+        return f"Техобслуживание: {status}"

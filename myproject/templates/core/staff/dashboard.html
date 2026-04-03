@@ -28,6 +28,41 @@
     <p>Студентов: <strong>{{ role_stats.student }}</strong></p>
 </section>
 
+{% if is_staff_admin %}
+<section class="section-panel">
+    <h2>Режим технического обслуживания</h2>
+    <p>
+        Текущий статус:
+        <strong>{% if maintenance_settings.maintenance_enabled %}Включен{% else %}Выключен{% endif %}</strong>
+    </p>
+    {% if maintenance_settings.maintenance_enabled and maintenance_settings.maintenance_ends_at %}
+        <p>Ориентировочное окончание: <strong>{{ maintenance_settings.maintenance_ends_at|date:"d.m.Y H:i" }}</strong></p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="enable_maintenance">
+        <p>
+            <label for="maintenance_ends_at">Ориентировочное окончание</label><br>
+            <input
+                id="maintenance_ends_at"
+                name="maintenance_ends_at"
+                type="datetime-local"
+                value="{% if maintenance_settings.maintenance_ends_at %}{{ maintenance_settings.maintenance_ends_at|date:'Y-m-d\\TH:i' }}{% endif %}"
+                required
+            >
+        </p>
+        <button type="submit">Включить техобслуживание</button>
+    </form>
+
+    <form method="post" style="margin-top: 0.75rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="disable_maintenance">
+        <button type="submit">Выключить техобслуживание</button>
+    </form>
+</section>
+{% endif %}
+
 <section>
     <h2>Последние обращения</h2>
     <div class="card-grid">

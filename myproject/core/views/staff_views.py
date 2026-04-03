@@ -4,11 +4,13 @@ from django.db import transaction
 from django.db.models import Count
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from core.forms import FAQManageForm
 from core.models import ActivityLog, CouncilJoinApplication, Event, FAQ, FeedbackMessage, News, UserFile, UserProfile
 from core.permissions import role_required
+from core.site_settings import get_maintenance_settings
 from core.services import (
     EVENT_REGISTRATION_SUBJECT_PREFIX,
     ServiceDependencyError,
@@ -34,6 +36,41 @@ def _normalize_faq_order():
 
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
 def staff_dashboard(request):
+    maintenance_settings = get_maintenance_settings()
+
+    if request.method == "POST" and request.POST.get("action") in {"enable_maintenance", "disable_maintenance"}:
+        is_admin = hasattr(request.user, "profile") and request.user.profile.is_admin
+        if not is_admin:
+            messages.error(request, "Только администратор может управлять техобслуживанием.")
+            return redirect("core:staff_dashboard")
+
+        action = request.POST.get("action")
+        if action == "enable_maintenance":
+            ends_at_raw = request.POST.get("maintenance_ends_at", "").strip()
+            ends_at_value = parse_datetime(ends_at_raw)
+            if ends_at_value is None:
+                messages.error(request, "Укажите корректную дату и время окончания техобслуживания.")
+                return redirect("core:staff_dashboard")
+            if timezone.is_naive(ends_at_value):
+                ends_at_value = timezone.make_aware(ends_at_value, timezone.get_current_timezone())
+
+            maintenance_settings.maintenance_enabled = True
+            maintenance_settings.maintenance_ends_at = ends_at_value
+            maintenance_settings.save(update_fields=["maintenance_enabled", "maintenance_ends_at"])
+            log_user_activity(
+                request,
+                "site.maintenance.enabled",
+                f"ends_at={maintenance_settings.maintenance_ends_at.isoformat()}",
+            )
+            messages.success(request, "Режим техобслуживания включен.")
+            return redirect("core:staff_dashboard")
+
+        maintenance_settings.maintenance_enabled = False
+        maintenance_settings.save(update_fields=["maintenance_enabled"])
+        log_user_activity(request, "site.maintenance.disabled")
+        messages.success(request, "Режим техобслуживания выключен.")
+        return redirect("core:staff_dashboard")
+
     role_rows = UserProfile.objects.values("role").annotate(total=Count("id")).order_by("role")
     role_stats = {row["role"]: row["total"] for row in role_rows}
 
@@ -51,6 +88,7 @@ def staff_dashboard(request):
         },
         "latest_feedbacks": FeedbackMessage.objects.select_related("user")[:10],
         "latest_join_requests": CouncilJoinApplication.objects.select_related("user")[:10],
+        "maintenance_settings": maintenance_settings,
     }
     return render(request, "core/staff/dashboard.html", context)
 

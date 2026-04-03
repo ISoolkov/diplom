@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Техническое обслуживание</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            color: #102a54;
+        }
+        .wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            width: 100%;
+            max-width: 680px;
+            background: #fff;
+            border: 1px solid #d4dfef;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(16, 42, 84, 0.08);
+        }
+        h1 {
+            margin: 0 0 12px;
+            font-size: 30px;
+            color: #c8102e;
+        }
+        p {
+            margin: 8px 0;
+            line-height: 1.5;
+            font-size: 18px;
+        }
+        .eta {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f8fbff;
+            border: 1px solid #d4dfef;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <section class="card">
+            <h1>Проводится техническое обслуживание</h1>
+            <p>Сайт временно недоступен. Мы уже работаем над восстановлением сервиса.</p>
+            {% if maintenance_enabled and maintenance_ends_at %}
+                <p class="eta">Ориентировочное время окончания: {{ maintenance_ends_at|date:"d.m.Y H:i" }}</p>
+            {% else %}
+                <p class="eta">Время окончания уточняется.</p>
+            {% endif %}
+        </section>
+    </div>
+</body>
+</html>

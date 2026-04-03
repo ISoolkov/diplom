@@ -19,6 +19,7 @@ urlpatterns = [
     path("faq/", views.faq_list, name="faq"),
     path("feedback/", views.feedback_create, name="feedback"),
     path("register/", views.register, name="register"),
+    path("maintenance/", views.maintenance_page, name="maintenance"),
     path("cabinet/", views.cabinet, name="cabinet"),
     path("cabinet/profile/", views.profile_edit, name="profile_edit"),
     path("cabinet/feedbacks/", views.my_feedbacks, name="my_feedbacks"),

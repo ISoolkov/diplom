@@ -13,6 +13,7 @@ from .models import (
     FeedbackMessage,
     News,
     Project,
+    SiteMaintenance,
     StudentCouncilMember,
     UserFile,
     UserProfile,
@@ -120,3 +121,8 @@ class ActivityLogAdmin(admin.ModelAdmin):
     list_display = ("created_at", "actor", "action", "ip_address")
     list_filter = ("action", "created_at")
     search_fields = ("actor__username", "action", "details", "ip_address")
+
+
+@admin.register(SiteMaintenance)
+class SiteMaintenanceAdmin(admin.ModelAdmin):
+    list_display = ("maintenance_enabled", "maintenance_ends_at")

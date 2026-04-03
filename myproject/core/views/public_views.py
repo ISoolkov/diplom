@@ -34,6 +34,7 @@ from core.models import (
     UserProfile,
 )
 from core.permissions import has_any_role
+from core.site_settings import get_maintenance_settings
 from core.services import ServiceValidationError, log_user_activity, register_for_event
 
 
@@ -445,5 +446,17 @@ def register(request):
     else:
         form = SignUpForm()
     return render(request, "registration/register.html", {"form": form})
+
+
+def maintenance_page(request):
+    settings_obj = get_maintenance_settings()
+    return render(
+        request,
+        "core/maintenance.html",
+        {
+            "maintenance_enabled": settings_obj.maintenance_enabled,
+            "maintenance_ends_at": settings_obj.maintenance_ends_at,
+        },
+    )
 
 
