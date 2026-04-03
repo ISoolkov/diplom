@@ -8,6 +8,15 @@
     <link rel="icon" type="image/png" href="{% static 'img/faviconV2.png' %}">
     <link rel="shortcut icon" href="{% static 'img/faviconV2.png' %}" type="image/png">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem("accessibility_contrast") === "1") {
+                    document.documentElement.classList.add("high-contrast");
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
     <header class="main-header">
@@ -86,6 +95,7 @@
                                 <button type="button" class="lang-dropdown-item" data-lang="zh">zh</button>
                             </div>
                         </div>
+                        <button type="button" class="contrast-toggle" id="contrastToggleDesktop">Версия для слабовидящих</button>
                     </div>
                 </div>
 
@@ -134,6 +144,7 @@
                     <a href="{% url 'login' %}">Вход</a>
                     <a href="{% url 'core:register' %}">Регистрация</a>
                 {% endif %}
+                <button type="button" class="contrast-toggle contrast-toggle--mobile" id="contrastToggleMobile">Версия для слабовидящих</button>
             </nav>
         </div>
     </header>
@@ -245,6 +256,48 @@
         </div>
     </footer>
 
+    <script>
+        (function () {
+            var htmlRoot = document.documentElement;
+            var desktopToggle = document.getElementById("contrastToggleDesktop");
+            var mobileToggle = document.getElementById("contrastToggleMobile");
+
+            function isEnabled() {
+                return htmlRoot.classList.contains("high-contrast");
+            }
+
+            function updateLabels() {
+                var text = isEnabled() ? "Обычная версия" : "Версия для слабовидящих";
+                if (desktopToggle) {
+                    desktopToggle.textContent = text;
+                }
+                if (mobileToggle) {
+                    mobileToggle.textContent = text;
+                }
+            }
+
+            function setMode(enabled) {
+                htmlRoot.classList.toggle("high-contrast", enabled);
+                try {
+                    localStorage.setItem("accessibility_contrast", enabled ? "1" : "0");
+                } catch (e) {}
+                updateLabels();
+            }
+
+            function toggleMode() {
+                setMode(!isEnabled());
+            }
+
+            if (desktopToggle) {
+                desktopToggle.addEventListener("click", toggleMode);
+            }
+            if (mobileToggle) {
+                mobileToggle.addEventListener("click", toggleMode);
+            }
+
+            updateLabels();
+        })();
+    </script>
     <script>
         (function () {
             var menu = document.getElementById('mobileMenu');

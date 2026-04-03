@@ -1559,11 +1559,11 @@ button:hover {
         margin-left: auto;
     }
 
-    .header-btn-apply {
-        font-size: 0.88rem;
-    }
+.header-btn-apply {
+    font-size: 0.88rem;
+}
 
-    .community-layout {
+.community-layout {
         grid-template-columns: 1fr;
     }
 }
@@ -1628,4 +1628,79 @@ button:hover {
     .s20 {
         grid-column: auto;
     }
+}
+
+.contrast-toggle {
+    border: 2px solid #132041;
+    background: #fff;
+    color: #132041;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.52rem 0.72rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.contrast-toggle:hover {
+    background: #132041;
+    color: #fff;
+}
+
+.contrast-toggle--mobile {
+    width: 100%;
+    margin-top: 0.4rem;
+}
+
+html.high-contrast body {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+html.high-contrast .main-header,
+html.high-contrast .main-footer,
+html.high-contrast .card,
+html.high-contrast .section-panel,
+html.high-contrast .mobileMenu,
+html.high-contrast .table-wrapper table,
+html.high-contrast input,
+html.high-contrast textarea,
+html.high-contrast select {
+    background: #000 !important;
+    color: #fff !important;
+    border-color: #fff !important;
+}
+
+html.high-contrast .main-header::before {
+    background: #fff !important;
+}
+
+html.high-contrast a,
+html.high-contrast .top-nav a,
+html.high-contrast .header-btn,
+html.high-contrast .footer_box a {
+    color: #ffeb3b !important;
+    text-decoration: underline !important;
+}
+
+html.high-contrast button,
+html.high-contrast .btnCommon,
+html.high-contrast .mobileMenu-logout-btn,
+html.high-contrast .contrast-toggle,
+html.high-contrast .lang-dropdown-toggle,
+html.high-contrast .lang-dropdown-item {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+html.high-contrast .message,
+html.high-contrast .breadcrumbs,
+html.high-contrast .header-notify-badge,
+html.high-contrast .mobile-notify-badge,
+html.high-contrast .status-badge {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
 }
