@@ -13,6 +13,9 @@ from core.models import (
     EventRegistration,
     FeedbackMessage,
     SiteMaintenance,
+    Poll,
+    PollOption,
+    PollVote,
     UserProfile,
 )
 from core.security.totp import current_totp_token
@@ -570,6 +573,67 @@ class SmokeTests(TestCase):
         auth_home_response = self.client.get(reverse("core:home"))
         auth_menu_items = auth_home_response.context["main_menu"]
         self.assertTrue(any(item["view_name"] == "core:community" for item in auth_menu_items))
+
+    def test_polls_visible_only_for_authenticated_users(self):
+        anon_response = self.client.get(reverse("core:polls"))
+        self.assertEqual(anon_response.status_code, 302)
+        self.assertIn(reverse("login"), anon_response.url)
+
+        home_response = self.client.get(reverse("core:home"))
+        menu_items = home_response.context["main_menu"]
+        self.assertFalse(any(item["view_name"] == "core:polls" for item in menu_items))
+
+        student = self.create_user("poll_student", role=UserProfile.ROLE_STUDENT)
+        self.client.force_login(student)
+        auth_home_response = self.client.get(reverse("core:home"))
+        auth_menu_items = auth_home_response.context["main_menu"]
+        self.assertTrue(any(item["view_name"] == "core:polls" for item in auth_menu_items))
+
+    def test_manager_can_create_poll_and_student_can_vote(self):
+        manager = self.create_user("poll_manager", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+
+        create_response = self.client.post(
+            reverse("core:polls"),
+            {
+                "create_poll": "1",
+                "title": "Какой формат мероприятий выбрать?",
+                "description": "Выберите один вариант",
+                "option_1": "Оффлайн",
+                "option_2": "Онлайн",
+                "option_3": "Смешанный",
+            },
+        )
+        self.assertEqual(create_response.status_code, 302)
+        poll = Poll.objects.get(title="Какой формат мероприятий выбрать?")
+        self.assertEqual(poll.options.count(), 3)
+
+        student = self.create_user("poll_student_vote", role=UserProfile.ROLE_STUDENT)
+        self.client.force_login(student)
+        option = poll.options.first()
+        vote_response = self.client.post(
+            reverse("core:polls"),
+            {"vote_poll": "1", "poll_id": poll.id, "option_id": option.id},
+        )
+        self.assertEqual(vote_response.status_code, 302)
+        self.assertTrue(PollVote.objects.filter(poll=poll, user=student, option=option).exists())
+
+    def test_student_cannot_create_poll(self):
+        student = self.create_user("student_no_poll_create", role=UserProfile.ROLE_STUDENT)
+        self.client.force_login(student)
+
+        response = self.client.post(
+            reverse("core:polls"),
+            {
+                "create_poll": "1",
+                "title": "Недопустимый опрос",
+                "option_1": "Да",
+                "option_2": "Нет",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Poll.objects.filter(title="Недопустимый опрос").exists())
 
     def test_gallery_page_available(self):
         response = self.client.get(reverse("core:gallery"))

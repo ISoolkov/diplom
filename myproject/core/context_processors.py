@@ -18,6 +18,7 @@ PAGE_TITLES = {
     "core:projects": "Проекты",
     "core:gallery": "Галерея",
     "core:faq": "FAQ",
+    "core:polls": "Опросы",
     "core:feedback": "Обратная связь",
     "login": "Вход",
     "admin_2fa_verify": "Подтверждение 2FA",
@@ -50,6 +51,7 @@ MAIN_MENU = [
     ("core:gallery", "Галерея"),
     ("core:documents", "Документы"),
     ("core:faq", "FAQ"),
+    ("core:polls", "Опросы"),
     ("core:community", "Соцсеть"),
     ("core:feedback", "Обратная связь"),
 ]
@@ -151,7 +153,7 @@ def navigation_context(request):
 
     main_menu_items = MAIN_MENU
     if not request.user.is_authenticated:
-        main_menu_items = [item for item in MAIN_MENU if item[0] != "core:community"]
+        main_menu_items = [item for item in MAIN_MENU if item[0] not in {"core:community", "core:polls"}]
 
     return {
         "main_menu": _resolve_menu(main_menu_items),

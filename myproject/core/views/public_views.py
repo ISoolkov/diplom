@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Exists, F, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -20,6 +21,7 @@ from core.forms import (
     EventManageForm,
     EventRegistrationForm,
     FeedbackForm,
+    PollCreateForm,
     SignUpForm,
 )
 from core.models import (
@@ -31,6 +33,9 @@ from core.models import (
     EventRegistration,
     FAQ,
     News,
+    Poll,
+    PollOption,
+    PollVote,
     Project,
     StudentCouncilMember,
     UserProfile,
@@ -522,6 +527,102 @@ def admin_2fa_verify(request):
             "setup_uri": setup_uri,
             "is_first_setup": not profile.totp_enabled,
             "username": user.username,
+        },
+    )
+
+
+def polls_page(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "Раздел опросов доступен только авторизованным пользователям.")
+        return redirect(f"{reverse('login')}?next={reverse('core:polls')}")
+
+    can_create = has_any_role(
+        request.user,
+        UserProfile.ROLE_ADMIN,
+        UserProfile.ROLE_MANAGER,
+    )
+    create_form = PollCreateForm()
+
+    if request.method == "POST":
+        if "create_poll" in request.POST:
+            if not can_create:
+                messages.error(request, "Создавать опросы могут только администратор и менеджер.")
+                return redirect("core:polls")
+
+            create_form = PollCreateForm(request.POST)
+            if create_form.is_valid():
+                options = []
+                for key in ("option_1", "option_2", "option_3", "option_4", "option_5"):
+                    value = create_form.cleaned_data.get(key, "").strip()
+                    if value:
+                        options.append(value)
+
+                if len(options) < 2:
+                    messages.error(request, "Добавьте минимум два варианта ответа.")
+                else:
+                    with transaction.atomic():
+                        poll = Poll.objects.create(
+                            title=create_form.cleaned_data["title"].strip(),
+                            description=create_form.cleaned_data["description"].strip(),
+                            created_by=request.user,
+                            is_active=True,
+                        )
+                        for index, option_text in enumerate(options, start=1):
+                            PollOption.objects.create(poll=poll, text=option_text, order=index)
+                    log_user_activity(request, "poll.created", f"poll_id={poll.id}")
+                    messages.success(request, "Опрос опубликован.")
+                    return redirect("core:polls")
+
+        elif "vote_poll" in request.POST:
+            poll = get_object_or_404(Poll, pk=request.POST.get("poll_id"), is_active=True)
+            option = get_object_or_404(PollOption, pk=request.POST.get("option_id"), poll=poll)
+            vote, created = PollVote.objects.get_or_create(
+                poll=poll,
+                user=request.user,
+                defaults={"option": option},
+            )
+            if not created and vote.option_id != option.id:
+                vote.option = option
+                vote.save(update_fields=["option", "updated_at"])
+                messages.success(request, "Ваш голос обновлен.")
+                log_user_activity(request, "poll.vote.updated", f"poll_id={poll.id}; option_id={option.id}")
+            else:
+                messages.success(request, "Ваш голос принят.")
+                log_user_activity(request, "poll.vote.created", f"poll_id={poll.id}; option_id={option.id}")
+            return redirect("core:polls")
+
+    polls = Poll.objects.filter(is_active=True).prefetch_related("options__votes", "created_by")
+    user_votes = {vote.poll_id: vote.option_id for vote in PollVote.objects.filter(user=request.user)}
+
+    poll_rows = []
+    for poll in polls:
+        option_rows = []
+        total_votes = 0
+        for option in poll.options.all():
+            votes_count = option.votes.count()
+            total_votes += votes_count
+            option_rows.append({"id": option.id, "text": option.text, "votes_count": votes_count})
+
+        poll_rows.append(
+            {
+                "id": poll.id,
+                "title": poll.title,
+                "description": poll.description,
+                "created_at": poll.created_at,
+                "created_by": poll.created_by,
+                "total_votes": total_votes,
+                "user_option_id": user_votes.get(poll.id),
+                "options": option_rows,
+            }
+        )
+
+    return render(
+        request,
+        "core/polls.html",
+        {
+            "polls": poll_rows,
+            "can_create_polls": can_create,
+            "poll_create_form": create_form,
         },
     )
 

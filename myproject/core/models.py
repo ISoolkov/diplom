@@ -378,3 +378,57 @@ class SiteMaintenance(models.Model):
     def __str__(self):
         status = "включено" if self.maintenance_enabled else "выключено"
         return f"Техобслуживание: {status}"
+
+
+class Poll(TimestampedModel):
+    title = models.CharField(max_length=220)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_polls",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Опрос"
+        verbose_name_plural = "Опросы"
+
+    def __str__(self):
+        return self.title
+
+
+class PollOption(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="options")
+    text = models.CharField(max_length=255)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Вариант ответа"
+        verbose_name_plural = "Варианты ответов"
+
+    def __str__(self):
+        return f"{self.poll_id}: {self.text}"
+
+
+class PollVote(TimestampedModel):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="votes")
+    option = models.ForeignKey(PollOption, on_delete=models.CASCADE, related_name="votes")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="poll_votes",
+    )
+
+    class Meta:
+        unique_together = ("poll", "user")
+        ordering = ["-created_at"]
+        verbose_name = "Голос"
+        verbose_name_plural = "Голоса"
+
+    def __str__(self):
+        return f"{self.user_id} -> {self.poll_id}:{self.option_id}"

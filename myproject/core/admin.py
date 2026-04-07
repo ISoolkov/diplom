@@ -12,6 +12,9 @@ from .models import (
     FAQ,
     FeedbackMessage,
     News,
+    Poll,
+    PollOption,
+    PollVote,
     Project,
     SiteMaintenance,
     StudentCouncilMember,
@@ -126,3 +129,24 @@ class ActivityLogAdmin(admin.ModelAdmin):
 @admin.register(SiteMaintenance)
 class SiteMaintenanceAdmin(admin.ModelAdmin):
     list_display = ("maintenance_enabled", "maintenance_ends_at")
+
+
+@admin.register(Poll)
+class PollAdmin(admin.ModelAdmin):
+    list_display = ("title", "is_active", "created_by", "created_at")
+    list_filter = ("is_active", "created_at")
+    search_fields = ("title", "description", "created_by__username")
+
+
+@admin.register(PollOption)
+class PollOptionAdmin(admin.ModelAdmin):
+    list_display = ("poll", "order", "text")
+    list_filter = ("poll",)
+    search_fields = ("poll__title", "text")
+
+
+@admin.register(PollVote)
+class PollVoteAdmin(admin.ModelAdmin):
+    list_display = ("poll", "option", "user", "created_at")
+    list_filter = ("poll", "created_at")
+    search_fields = ("poll__title", "option__text", "user__username")

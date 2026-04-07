@@ -26,6 +26,7 @@ from .public_views import (
     news_detail,
     news_list,
     projects_list,
+    polls_page,
     register,
 )
 from .staff_views import (
@@ -70,6 +71,7 @@ __all__ = [
     "news_list",
     "profile_edit",
     "projects_list",
+    "polls_page",
     "register",
     "staff_dashboard",
     "staff_feedbacks",

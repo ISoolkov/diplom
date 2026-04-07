@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Опросы{% endblock %}
+{% block content %}
+<h1>Опросы студсовета</h1>
+
+{% if can_create_polls %}
+<section class="section-panel">
+    <h2>Создать опрос</h2>
+    <form method="post" class="form">
+        {% csrf_token %}
+        <input type="hidden" name="create_poll" value="1">
+        {{ poll_create_form.as_p }}
+        <button type="submit">Опубликовать опрос</button>
+    </form>
+</section>
+{% endif %}
+
+<section>
+    <div class="card-grid">
+        {% for poll in polls %}
+            <article class="card">
+                <h2>{{ poll.title }}</h2>
+                {% if poll.description %}
+                    <p>{{ poll.description }}</p>
+                {% endif %}
+                <p>
+                    <small>
+                        Голосов: {{ poll.total_votes }}
+                        {% if poll.created_by %} · Автор: {{ poll.created_by.username }}{% endif %}
+                        · {{ poll.created_at|date:"d.m.Y H:i" }}
+                    </small>
+                </p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="vote_poll" value="1">
+                    <input type="hidden" name="poll_id" value="{{ poll.id }}">
+                    {% for option in poll.options %}
+                        <label style="display:block; margin-bottom:0.35rem;">
+                            <input
+                                type="radio"
+                                name="option_id"
+                                value="{{ option.id }}"
+                                {% if poll.user_option_id == option.id %}checked{% endif %}
+                            >
+                            {{ option.text }} ({{ option.votes_count }})
+                        </label>
+                    {% endfor %}
+                    <button type="submit">Проголосовать</button>
+                </form>
+            </article>
+        {% empty %}
+            <article class="card">
+                <h2>Опросов пока нет</h2>
+                <p>Скоро здесь появятся новые голосования.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

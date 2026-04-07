@@ -228,3 +228,17 @@ class AdminOTPForm(forms.Form):
             }
         ),
     )
+
+
+class PollCreateForm(forms.Form):
+    title = forms.CharField(max_length=220, label="Тема опроса")
+    description = forms.CharField(
+        required=False,
+        label="Описание",
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+    option_1 = forms.CharField(max_length=255, label="Вариант 1")
+    option_2 = forms.CharField(max_length=255, label="Вариант 2")
+    option_3 = forms.CharField(max_length=255, required=False, label="Вариант 3")
+    option_4 = forms.CharField(max_length=255, required=False, label="Вариант 4")
+    option_5 = forms.CharField(max_length=255, required=False, label="Вариант 5")
