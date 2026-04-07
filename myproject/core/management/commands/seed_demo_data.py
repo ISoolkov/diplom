@@ -10,6 +10,8 @@ from core.models import (
     Event,
     FAQ,
     News,
+    Poll,
+    PollOption,
     Project,
     StudentCouncilMember,
     UserProfile,
@@ -20,6 +22,39 @@ User = get_user_model()
 
 class Command(BaseCommand):
     help = "Создает тестовые данные для портала студенческого совета МУИВ."
+
+    def _ensure_poll(self, *, title, description, created_by, options):
+        poll, _ = Poll.objects.get_or_create(
+            title=title,
+            defaults={
+                "description": description,
+                "is_active": True,
+                "created_by": created_by,
+            },
+        )
+
+        changed_fields = []
+        if poll.description != description:
+            poll.description = description
+            changed_fields.append("description")
+        if not poll.is_active:
+            poll.is_active = True
+            changed_fields.append("is_active")
+        if poll.created_by_id != created_by.id:
+            poll.created_by = created_by
+            changed_fields.append("created_by")
+
+        if changed_fields:
+            poll.save(update_fields=changed_fields)
+
+        for order, option_text in enumerate(options, start=1):
+            PollOption.objects.get_or_create(
+                poll=poll,
+                text=option_text,
+                defaults={"order": order},
+            )
+
+        return poll
 
     def _ensure_user(self, *, username, password, first_name, last_name, email, role, is_superuser=False):
         user, created = User.objects.get_or_create(
@@ -215,6 +250,60 @@ class Command(BaseCommand):
                 is_pinned=False,
                 is_published=True,
             )
+
+        self._ensure_poll(
+            title="Какой формат мероприятий вам удобнее?",
+            description="Помогите выбрать основной формат проведения студенческих мероприятий на следующий месяц.",
+            created_by=manager_user,
+            options=[
+                "Офлайн в кампусе",
+                "Онлайн в Zoom/Teams",
+                "Смешанный формат",
+            ],
+        )
+        self._ensure_poll(
+            title="Какая тема следующего воркшопа интереснее?",
+            description="Выберите тему практического занятия от студсовета.",
+            created_by=manager_user,
+            options=[
+                "Тайм-менеджмент и учеба",
+                "Публичные выступления",
+                "Проектная работа и лидерство",
+                "Карьерные навыки и резюме",
+            ],
+        )
+        self._ensure_poll(
+            title="В какой день лучше проводить встречи студсовета?",
+            description="Подбираем максимально удобный день для открытых встреч со студентами.",
+            created_by=admin_user,
+            options=[
+                "Понедельник",
+                "Среда",
+                "Пятница",
+                "Суббота",
+            ],
+        )
+        self._ensure_poll(
+            title="Нужен ли раздел с видеозаписями мероприятий?",
+            description="Оцените идею создания медиаархива на сайте студсовета.",
+            created_by=admin_user,
+            options=[
+                "Да, обязательно",
+                "Да, но только для крупных событий",
+                "Нет, не требуется",
+            ],
+        )
+        self._ensure_poll(
+            title="Какой канал уведомлений о новостях выбрать основным?",
+            description="Определяем, где публиковать оперативные анонсы в первую очередь.",
+            created_by=manager_user,
+            options=[
+                "Личный кабинет на сайте",
+                "Соцсеть студсовета",
+                "Email-рассылка",
+                "Push-уведомления в браузере",
+            ],
+        )
 
         self.stdout.write(self.style.SUCCESS("Тестовые данные и роли пользователей успешно созданы."))
 

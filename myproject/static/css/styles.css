@@ -1704,3 +1704,54 @@ html.high-contrast .status-badge {
     color: #fff !important;
     border: 2px solid #fff !important;
 }
+
+.polls-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.poll-card {
+    width: 100%;
+}
+
+.poll-options-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.poll-option-btn {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--muiv-card-border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--muiv-dark);
+    cursor: pointer;
+}
+
+.poll-option-btn:hover {
+    border-color: var(--muiv-accent-dark);
+    background: #fff7f9;
+}
+
+.poll-option-btn.is-selected {
+    border: 2px solid var(--muiv-accent-dark);
+    background: #fff1f4;
+}
+
+.poll-option-votes {
+    min-width: 2rem;
+    text-align: center;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--muiv-card-border);
+    font-weight: 700;
+}

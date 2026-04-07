@@ -16,9 +16,9 @@
 {% endif %}
 
 <section>
-    <div class="card-grid">
+    <div class="polls-list">
         {% for poll in polls %}
-            <article class="card">
+            <article class="card poll-card">
                 <h2>{{ poll.title }}</h2>
                 {% if poll.description %}
                     <p>{{ poll.description }}</p>
@@ -31,22 +31,21 @@
                     </small>
                 </p>
 
-                <form method="post">
+                <form method="post" class="poll-options-form">
                     {% csrf_token %}
                     <input type="hidden" name="vote_poll" value="1">
                     <input type="hidden" name="poll_id" value="{{ poll.id }}">
                     {% for option in poll.options %}
-                        <label style="display:block; margin-bottom:0.35rem;">
-                            <input
-                                type="radio"
-                                name="option_id"
-                                value="{{ option.id }}"
-                                {% if poll.user_option_id == option.id %}checked{% endif %}
-                            >
-                            {{ option.text }} ({{ option.votes_count }})
-                        </label>
+                        <button
+                            type="submit"
+                            class="poll-option-btn {% if poll.user_option_id == option.id %}is-selected{% endif %}"
+                            name="option_id"
+                            value="{{ option.id }}"
+                        >
+                            <span class="poll-option-text">{{ option.text }}</span>
+                            <span class="poll-option-votes">{{ option.votes_count }}</span>
+                        </button>
                     {% endfor %}
-                    <button type="submit">Проголосовать</button>
                 </form>
             </article>
         {% empty %}
