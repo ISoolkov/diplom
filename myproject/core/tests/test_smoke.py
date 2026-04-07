@@ -15,6 +15,7 @@ from core.models import (
     SiteMaintenance,
     UserProfile,
 )
+from core.security.totp import current_totp_token
 from core.services import EVENT_REGISTRATION_SUBJECT_PREFIX
 
 User = get_user_model()
@@ -36,6 +37,45 @@ class SmokeTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("core:home"))
+
+    def test_admin_login_requires_totp_code(self):
+        user = User.objects.create_user(username="admin_2fa", password="StrongPass123!")
+        profile = user.profile
+        profile.role = UserProfile.ROLE_ADMIN
+        profile.save(update_fields=["role"])
+
+        login_response = self.client.post(
+            reverse("login"),
+            {"username": "admin_2fa", "password": "StrongPass123!"},
+        )
+        self.assertEqual(login_response.status_code, 302)
+        self.assertEqual(login_response.url, reverse("admin_2fa_verify"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+        setup_response = self.client.get(reverse("admin_2fa_verify"))
+        self.assertEqual(setup_response.status_code, 200)
+        profile.refresh_from_db()
+        self.assertTrue(profile.totp_secret)
+
+        token = current_totp_token(profile.totp_secret)
+        verify_response = self.client.post(reverse("admin_2fa_verify"), {"token": token})
+        self.assertEqual(verify_response.status_code, 302)
+        self.assertEqual(verify_response.url, reverse("core:cabinet"))
+        self.assertEqual(str(user.id), self.client.session.get("_auth_user_id"))
+
+    def test_student_login_without_totp(self):
+        user = User.objects.create_user(username="student_plain", password="StrongPass123!")
+        profile = user.profile
+        profile.role = UserProfile.ROLE_STUDENT
+        profile.save(update_fields=["role"])
+
+        response = self.client.post(
+            reverse("login"),
+            {"username": "student_plain", "password": "StrongPass123!"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("core:cabinet"))
+        self.assertEqual(str(user.id), self.client.session.get("_auth_user_id"))
 
     def test_staff_dashboard_available_for_admin(self):
         admin = self.create_user("admin", role=UserProfile.ROLE_ADMIN)

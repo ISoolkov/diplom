@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Подтверждение входа 2FA{% endblock %}
+{% block content %}
+<h1>Подтверждение входа администратора</h1>
+
+<section class="section-panel">
+    <p><strong>Пользователь:</strong> {{ username }}</p>
+    {% if is_first_setup %}
+        <p>Первый вход с 2FA. Добавьте аккаунт в Google Authenticator:</p>
+        <p><strong>Секретный ключ:</strong> <code>{{ totp_secret }}</code></p>
+        <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data={{ setup_uri|urlencode }}" alt="QR для Google Authenticator"></p>
+        <p><strong>URI для добавления:</strong> <code>{{ setup_uri }}</code></p>
+    {% else %}
+        <p>Введите 6-значный код из Google Authenticator.</p>
+    {% endif %}
+</section>
+
+<form method="post" class="form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Подтвердить вход</button>
+</form>
+{% endblock %}

@@ -213,3 +213,18 @@ class FAQManageForm(forms.ModelForm):
             "answer": forms.Textarea(attrs={"rows": 4}),
             "order": forms.NumberInput(attrs={"min": 0}),
         }
+
+
+class AdminOTPForm(forms.Form):
+    token = forms.CharField(
+        max_length=6,
+        min_length=6,
+        label="Код из Google Authenticator",
+        widget=forms.TextInput(
+            attrs={
+                "inputmode": "numeric",
+                "autocomplete": "one-time-code",
+                "placeholder": "6 цифр",
+            }
+        ),
+    )

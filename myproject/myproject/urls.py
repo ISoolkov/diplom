@@ -21,6 +21,8 @@ from django.contrib.auth import views as auth_views
 from django.views.generic.base import RedirectView
 from django.urls import include, path
 
+from core import views as core_views
+
 handler404 = "core.views.error_views.custom_404"
 
 urlpatterns = [
@@ -32,9 +34,10 @@ urlpatterns = [
     ),
     path(
         'login/',
-        auth_views.LoginView.as_view(template_name='registration/login.html'),
+        core_views.login_view,
         name='login',
     ),
+    path('login/2fa/', core_views.admin_2fa_verify, name='admin_2fa_verify'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
 

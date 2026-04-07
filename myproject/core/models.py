@@ -179,6 +179,8 @@ class UserProfile(models.Model):
     faculty = models.CharField(max_length=120, blank=True)
     course = models.CharField(max_length=20, blank=True)
     telegram = models.CharField(max_length=60, blank=True)
+    totp_secret = models.CharField(max_length=64, blank=True, verbose_name="Секрет 2FA (TOTP)")
+    totp_enabled = models.BooleanField(default=False, verbose_name="2FA включена")
     moderator_replies_seen_at = models.DateTimeField(
         null=True,
         blank=True,

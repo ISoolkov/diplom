@@ -20,6 +20,7 @@ PAGE_TITLES = {
     "core:faq": "FAQ",
     "core:feedback": "Обратная связь",
     "login": "Вход",
+    "admin_2fa_verify": "Подтверждение 2FA",
     "core:register": "Регистрация",
     "core:maintenance": "Техническое обслуживание",
     "core:cabinet": "Личный кабинет",

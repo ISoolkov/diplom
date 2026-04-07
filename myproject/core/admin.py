@@ -77,7 +77,7 @@ class EventRegistrationAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "role", "faculty", "course", "telegram")
+    list_display = ("user", "role", "totp_enabled", "faculty", "course", "telegram")
     list_filter = ("role",)
     search_fields = ("user__username", "faculty", "telegram")
 

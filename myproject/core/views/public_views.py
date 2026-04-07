@@ -3,7 +3,8 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login
+from django.contrib.auth.forms import AuthenticationForm
 from django.core.paginator import Paginator
 from django.db.models import Exists, F, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,6 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.forms import (
+    AdminOTPForm,
     CommunityCommentForm,
     CommunityPostForm,
     CouncilJoinApplicationForm,
@@ -34,8 +36,11 @@ from core.models import (
     UserProfile,
 )
 from core.permissions import has_any_role
+from core.security.totp import build_otpauth_uri, generate_totp_secret, verify_totp
 from core.site_settings import get_maintenance_settings
 from core.services import ServiceValidationError, log_user_activity, register_for_event
+
+User = get_user_model()
 
 
 def _document_display_name(filename):
@@ -446,6 +451,79 @@ def register(request):
     else:
         form = SignUpForm()
     return render(request, "registration/register.html", {"form": form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("core:cabinet")
+
+    redirect_to = request.GET.get(REDIRECT_FIELD_NAME) or request.POST.get(REDIRECT_FIELD_NAME) or ""
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
+        role = getattr(getattr(user, "profile", None), "role", UserProfile.ROLE_STUDENT)
+
+        if role == UserProfile.ROLE_ADMIN or user.is_superuser:
+            request.session["pending_2fa_user_id"] = user.id
+            request.session["pending_2fa_next"] = redirect_to
+            request.session["pending_2fa_backend"] = getattr(user, "backend", "")
+            return redirect("admin_2fa_verify")
+
+        login(request, user)
+        return redirect(redirect_to or settings.LOGIN_REDIRECT_URL)
+
+    return render(
+        request,
+        "registration/login.html",
+        {"form": form, REDIRECT_FIELD_NAME: redirect_to},
+    )
+
+
+def admin_2fa_verify(request):
+    pending_user_id = request.session.get("pending_2fa_user_id")
+    if not pending_user_id:
+        return redirect("login")
+
+    user = get_object_or_404(User, pk=pending_user_id)
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+
+    if not profile.totp_secret:
+        profile.totp_secret = generate_totp_secret()
+        profile.save(update_fields=["totp_secret"])
+
+    form = AdminOTPForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        token = form.cleaned_data["token"]
+        if verify_totp(profile.totp_secret, token):
+            if not profile.totp_enabled:
+                profile.totp_enabled = True
+                profile.save(update_fields=["totp_enabled"])
+
+            backend = request.session.get("pending_2fa_backend") or "django.contrib.auth.backends.ModelBackend"
+            login(request, user, backend=backend)
+            request.session.pop("pending_2fa_user_id", None)
+            request.session.pop("pending_2fa_backend", None)
+            next_url = request.session.pop("pending_2fa_next", None)
+            log_user_activity(request, "auth.admin_2fa.success", f"user={user.username}")
+            messages.success(request, "Вход подтвержден через Google Authenticator.")
+            return redirect(next_url or settings.LOGIN_REDIRECT_URL)
+
+        log_user_activity(request, "auth.admin_2fa.failed", f"user={user.username}")
+        messages.error(request, "Неверный код. Проверьте приложение Google Authenticator.")
+
+    setup_uri = build_otpauth_uri(profile.totp_secret, user.username, issuer="MUIV StudCouncil")
+    return render(
+        request,
+        "registration/admin_2fa_verify.html",
+        {
+            "form": form,
+            "totp_secret": profile.totp_secret,
+            "setup_uri": setup_uri,
+            "is_first_setup": not profile.totp_enabled,
+            "username": user.username,
+        },
+    )
 
 
 def maintenance_page(request):
