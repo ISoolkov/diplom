@@ -3,6 +3,9 @@
 {% block content %}
 <article class="detail">
     <h1>{{ event.title }}</h1>
+    {% if event.image %}
+        <img src="{{ event.image.url }}" alt="{{ event.title }}" class="detail-image">
+    {% endif %}
     <p><strong>Дата и время:</strong> {{ event.start_at|date:"d.m.Y H:i" }}</p>
     <p><strong>Место:</strong> {{ event.location }}</p>
     {% if event.end_at %}

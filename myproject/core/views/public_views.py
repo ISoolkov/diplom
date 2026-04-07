@@ -139,7 +139,7 @@ def events_list(request):
 
         action = request.POST.get("action", "update")
         if action == "create":
-            create_form = EventManageForm(request.POST)
+            create_form = EventManageForm(request.POST, request.FILES)
             if create_form.is_valid():
                 event = create_form.save(commit=False)
                 # Полное описание заполняем базовым текстом из анонса.
@@ -152,7 +152,7 @@ def events_list(request):
             messages.error(request, "Проверьте поля формы нового мероприятия.")
         else:
             event = get_object_or_404(Event, pk=request.POST.get("event_id"), is_published=True)
-            form = EventManageForm(request.POST, instance=event)
+            form = EventManageForm(request.POST, request.FILES, instance=event)
             if form.is_valid():
                 form.save()
                 messages.success(request, "Анонс мероприятия обновлен.")

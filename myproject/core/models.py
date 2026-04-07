@@ -52,6 +52,7 @@ class Event(TimestampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField()
     short_description = models.CharField(max_length=280)
+    image = models.ImageField(upload_to="events/", blank=True, null=True)
     location = models.CharField(max_length=200)
     start_at = models.DateTimeField()
     end_at = models.DateTimeField(blank=True, null=True)

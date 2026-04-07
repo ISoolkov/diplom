@@ -1,6 +1,7 @@
 ﻿from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -342,6 +343,38 @@ class SmokeTests(TestCase):
                 )
                 self.assertEqual(response.status_code, 302)
                 self.assertTrue(Event.objects.filter(title=f"Новое событие {role}").exists())
+
+    def test_manager_can_create_event_with_uploaded_image(self):
+        manager = self.create_user("events_manager_image", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+
+        image_file = SimpleUploadedFile(
+            "event.gif",
+            (
+                b"GIF87a\x01\x00\x01\x00\x80\x00\x00"
+                b"\x00\x00\x00\xff\xff\xff!\xf9\x04\x00\x00\x00\x00\x00,"
+                b"\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+            ),
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("core:events_list"),
+            {
+                "action": "create",
+                "title": "Событие с фото",
+                "short_description": "Анонс с фото",
+                "location": "Аудитория 203",
+                "start_at": (timezone.now() + timedelta(days=5)).strftime("%Y-%m-%dT%H:%M"),
+                "registration_deadline": (timezone.now() + timedelta(days=4)).strftime("%Y-%m-%dT%H:%M"),
+                "max_participants": "100",
+                "image": image_file,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        event = Event.objects.get(title="Событие с фото")
+        self.assertTrue(bool(event.image))
 
     def test_admin_can_enable_maintenance_mode(self):
         admin = self.create_user("maintenance_admin", role=UserProfile.ROLE_ADMIN)
@@ -710,4 +743,6 @@ class SmokeTests(TestCase):
         self.assertTemplateUsed(response, "404.html")
         self.assertContains(response, "Ошибка 404", status_code=404)
         self.assertContains(response, "В адресе указан неизвестный раздел", status_code=404)
+
+
 

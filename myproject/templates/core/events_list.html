@@ -10,7 +10,7 @@
 {% if can_manage_events %}
     <section class="section-panel">
         <h2>Добавить мероприятие</h2>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
             {{ create_form.as_p }}
@@ -23,6 +23,9 @@
     {% for event in events %}
         <article class="card">
             <h2><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h2>
+            {% if event.image %}
+                <p><img src="{{ event.image.url }}" alt="{{ event.title }}" class="detail-image"></p>
+            {% endif %}
             <p>{{ event.short_description }}</p>
             <p><small>{{ event.start_at|date:"d.m.Y H:i" }} · {{ event.location }}</small></p>
             {% if event.registration_deadline %}
@@ -37,7 +40,7 @@
             {% if can_manage_events %}
                 <details class="event-manage">
                     <summary>Редактировать анонс</summary>
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="update">
                         <input type="hidden" name="event_id" value="{{ event.id }}">

@@ -110,6 +110,7 @@ class EventManageForm(forms.ModelForm):
         fields = (
             "title",
             "short_description",
+            "image",
             "location",
             "start_at",
             "registration_deadline",
@@ -118,11 +119,13 @@ class EventManageForm(forms.ModelForm):
         labels = {
             "title": "Название",
             "short_description": "Краткий анонс",
+            "image": "Фото мероприятия",
             "location": "Место",
             "max_participants": "Макс. участников",
         }
         widgets = {
             "short_description": forms.Textarea(attrs={"rows": 2}),
+            "image": forms.ClearableFileInput(attrs={"accept": "image/*"}),
             "max_participants": forms.NumberInput(attrs={"min": 1}),
         }
 
