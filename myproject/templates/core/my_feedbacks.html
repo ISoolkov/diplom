@@ -21,6 +21,9 @@
             {% if item.moderation_comment %}
                 <p><strong>Комментарий модератора:</strong> {{ item.moderation_comment }}</p>
             {% endif %}
+            {% if item.moderation_attachment %}
+                <p><a href="{{ item.moderation_attachment.url }}" target="_blank" rel="noopener">Скачать файл от модератора</a></p>
+            {% endif %}
         </article>
     {% empty %}
         <article class="card">

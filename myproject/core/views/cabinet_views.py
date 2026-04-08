@@ -135,6 +135,7 @@ def moderator_replies(request):
                 "title": item.subject,
                 "status": item.get_status_display(),
                 "comment": item.moderation_comment,
+                "attachment_url": item.moderation_attachment.url if item.moderation_attachment else "",
                 "updated_at": item.updated_at,
             }
         )
@@ -146,6 +147,7 @@ def moderator_replies(request):
                 "title": item.full_name,
                 "status": item.get_status_display(),
                 "comment": item.moderation_comment,
+                "attachment_url": "",
                 "updated_at": item.updated_at,
             }
         )

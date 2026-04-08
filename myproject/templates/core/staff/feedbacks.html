@@ -41,15 +41,26 @@
                         {% endif %}
                     </td>
                     <td>
-                        <form method="post" class="inline-controls">
+                        <form method="post" enctype="multipart/form-data" class="inline-controls">
                             {% csrf_token %}
                             <input type="hidden" name="feedback_id" value="{{ item.id }}">
+                            <input type="hidden" name="clear_moderation_attachment" value="0" class="clear-moderation-attachment-flag">
                             <select name="status">
                                 {% for value, label in item.STATUS_CHOICES %}
                                     <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                             <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
+                            <div class="moderation-attachment-control">
+                                <input type="file" name="moderation_attachment" class="moderation-attachment-input">
+                                <span class="moderation-attachment-ui">
+                                    <small class="moderation-attachment-name"></small>
+                                    <button type="button" class="moderation-attachment-clear" aria-label="Убрать файл" title="Убрать файл">×</button>
+                                </span>
+                            </div>
+                            {% if item.moderation_attachment %}
+                                <a href="{{ item.moderation_attachment.url }}" target="_blank" rel="noopener" class="current-moderation-file-link">Текущий файл модератора</a>
+                            {% endif %}
                             <button type="submit">Сохранить изменения</button>
                         </form>
                     </td>
@@ -62,5 +73,84 @@
         </tbody>
     </table>
 </div>
+<script>
+    (function () {
+        var forms = document.querySelectorAll(".inline-controls");
+        if (!forms.length) {
+            return;
+        }
+
+        forms.forEach(function (form) {
+            var input = form.querySelector(".moderation-attachment-input");
+            var nameNode = form.querySelector(".moderation-attachment-name");
+            var clearBtn = form.querySelector(".moderation-attachment-clear");
+            var clearFlag = form.querySelector(".clear-moderation-attachment-flag");
+            var currentFileLink = form.querySelector(".current-moderation-file-link");
+            var uiWrap = form.querySelector(".moderation-attachment-ui");
+
+            if (!input || !nameNode || !clearBtn || !clearFlag) {
+                return;
+            }
+
+            if (uiWrap) {
+                uiWrap.style.display = "inline-flex";
+                uiWrap.style.alignItems = "center";
+                uiWrap.style.gap = "0.35rem";
+                uiWrap.style.marginLeft = "0.5rem";
+            }
+
+            nameNode.style.color = "#4f6a84";
+
+            clearBtn.style.display = "none";
+            clearBtn.style.width = "24px";
+            clearBtn.style.height = "24px";
+            clearBtn.style.padding = "0";
+            clearBtn.style.border = "1px solid #a0b3c6";
+            clearBtn.style.borderRadius = "50%";
+            clearBtn.style.background = "#fff";
+            clearBtn.style.color = "#132041";
+            clearBtn.style.cursor = "pointer";
+            clearBtn.style.lineHeight = "1";
+            clearBtn.style.fontSize = "18px";
+
+            function refreshUi() {
+                var hasNewFile = input.files && input.files.length > 0;
+                if (hasNewFile) {
+                    nameNode.textContent = input.files[0].name;
+                    clearBtn.style.display = "inline-flex";
+                    clearBtn.style.alignItems = "center";
+                    clearBtn.style.justifyContent = "center";
+                    clearFlag.value = "0";
+                } else {
+                    nameNode.textContent = "";
+                    if (currentFileLink) {
+                        clearBtn.style.display = "inline-flex";
+                        clearBtn.style.alignItems = "center";
+                        clearBtn.style.justifyContent = "center";
+                    } else {
+                        clearBtn.style.display = "none";
+                    }
+                }
+            }
+
+            clearBtn.addEventListener("click", function () {
+                if (input.files && input.files.length > 0) {
+                    input.value = "";
+                    clearFlag.value = "0";
+                } else if (currentFileLink) {
+                    clearFlag.value = "1";
+                    currentFileLink.style.display = "none";
+                    clearBtn.style.display = "none";
+                    nameNode.textContent = "Файл будет удален после сохранения.";
+                }
+                input.dispatchEvent(new Event("change"));
+                refreshUi();
+            });
+
+            input.addEventListener("change", refreshUi);
+            refreshUi();
+        });
+    })();
+</script>
 {% endblock %}
 

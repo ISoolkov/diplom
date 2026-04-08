@@ -60,7 +60,7 @@ class FAQAdmin(admin.ModelAdmin):
 
 @admin.register(FeedbackMessage)
 class FeedbackMessageAdmin(admin.ModelAdmin):
-    list_display = ("subject", "name", "email", "status", "created_at", "attachment")
+    list_display = ("subject", "name", "email", "status", "created_at", "attachment", "moderation_attachment")
     list_filter = ("status", "created_at")
     search_fields = ("subject", "name", "email", "message")
 

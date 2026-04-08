@@ -16,6 +16,9 @@
             <h2>{{ item.kind }}: {{ item.title }}</h2>
             <p><strong>Статус:</strong> {{ item.status }}</p>
             <p><strong>Ответ модератора:</strong> {{ item.comment }}</p>
+            {% if item.attachment_url %}
+                <p><a href="{{ item.attachment_url }}" target="_blank" rel="noopener">Скачать файл от модератора</a></p>
+            {% endif %}
             <p><small>Обновлено: {{ item.updated_at|date:"d.m.Y H:i" }}</small></p>
         </article>
     {% empty %}

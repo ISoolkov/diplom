@@ -555,6 +555,42 @@ class SmokeTests(TestCase):
         self.assertEqual(join_response.status_code, 200)
         self.assertContains(join_response, "Заявка на мероприятие: Тест")
 
+    def test_manager_can_attach_file_in_feedback_response_and_student_can_download(self):
+        student = self.create_user("student_feedback_file", role=UserProfile.ROLE_STUDENT)
+        feedback = FeedbackMessage.objects.create(
+            user=student,
+            name="Студент",
+            email="student_feedback_file@example.com",
+            subject="Нужна справка",
+            message="Прошу прислать образец.",
+        )
+
+        manager = self.create_user("manager_feedback_file", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+        mod_file = SimpleUploadedFile(
+            "answer.txt",
+            b"moderator attachment",
+            content_type="text/plain",
+        )
+        response = self.client.post(
+            reverse("core:staff_feedbacks"),
+            {
+                "feedback_id": feedback.id,
+                "status": FeedbackMessage.STATUS_RESOLVED,
+                "moderation_comment": "Файл приложен.",
+                "moderation_attachment": mod_file,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+
+        feedback.refresh_from_db()
+        self.assertTrue(bool(feedback.moderation_attachment))
+
+        self.client.force_login(student)
+        my_feedbacks = self.client.get(reverse("core:my_feedbacks"))
+        self.assertEqual(my_feedbacks.status_code, 200)
+        self.assertContains(my_feedbacks, "Скачать файл от модератора")
+
     def test_student_cannot_create_community_post(self):
         student = self.create_user("student_community", role=UserProfile.ROLE_STUDENT)
         self.client.force_login(student)

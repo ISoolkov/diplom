@@ -99,12 +99,21 @@ def staff_feedbacks(request):
         item = get_object_or_404(FeedbackMessage, pk=request.POST.get("feedback_id"))
         new_status = request.POST.get("status", "")
         moderation_comment = request.POST.get("moderation_comment", "")
+        moderation_attachment = request.FILES.get("moderation_attachment")
+        clear_moderation_attachment = request.POST.get("clear_moderation_attachment") == "1"
 
         try:
             update_feedback_status(item, new_status, moderation_comment)
         except ServiceValidationError as exc:
             messages.error(request, str(exc))
         else:
+            if clear_moderation_attachment and item.moderation_attachment:
+                item.moderation_attachment.delete(save=False)
+                item.moderation_attachment = None
+                item.save(update_fields=["moderation_attachment", "updated_at"])
+            if moderation_attachment:
+                item.moderation_attachment = moderation_attachment
+                item.save(update_fields=["moderation_attachment", "updated_at"])
             messages.success(request, "Статус обращения обновлен.")
             log_user_activity(
                 request,
