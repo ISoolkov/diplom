@@ -323,7 +323,7 @@ def feedback_create(request):
                 except (ValueError, TypeError):
                     pass
 
-        form = FeedbackForm(request.POST)
+        form = FeedbackForm(request.POST, request.FILES)
         if form.is_valid():
             item = form.save(commit=False)
             if request.user.is_authenticated:

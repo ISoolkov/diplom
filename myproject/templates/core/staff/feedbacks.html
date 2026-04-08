@@ -36,6 +36,9 @@
                     <td>
                         <strong>{{ item.subject }}</strong>
                         <p>{{ item.message|linebreaksbr }}</p>
+                        {% if item.attachment %}
+                            <p><a href="{{ item.attachment.url }}" target="_blank" rel="noopener">Открыть вложение</a></p>
+                        {% endif %}
                     </td>
                     <td>
                         <form method="post" class="inline-controls">

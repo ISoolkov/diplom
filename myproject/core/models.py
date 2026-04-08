@@ -147,6 +147,7 @@ class FeedbackMessage(TimestampedModel):
     email = models.EmailField()
     subject = models.CharField(max_length=200)
     message = models.TextField()
+    attachment = models.FileField(upload_to="feedback_attachments/", blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

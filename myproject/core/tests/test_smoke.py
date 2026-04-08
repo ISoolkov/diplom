@@ -203,6 +203,28 @@ class SmokeTests(TestCase):
         self.assertEqual(response.url, reverse("core:feedback"))
         self.assertEqual(FeedbackMessage.objects.count(), 1)
 
+    def test_feedback_form_accepts_attachment(self):
+        attachment = SimpleUploadedFile(
+            "request.txt",
+            b"test attachment content",
+            content_type="text/plain",
+        )
+
+        response = self.client.post(
+            reverse("core:feedback"),
+            {
+                "name": "Тест",
+                "email": "test@example.com",
+                "subject": "Проверка с файлом",
+                "message": "Сообщение с вложением",
+                "attachment": attachment,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        item = FeedbackMessage.objects.get(subject="Проверка с файлом")
+        self.assertTrue(bool(item.attachment))
+
     def test_feedback_form_rate_limited_to_once_per_minute(self):
         user = self.create_user("feedback_rate_user")
         self.client.force_login(user)

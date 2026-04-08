@@ -63,12 +63,13 @@ class ProfileUpdateForm(forms.ModelForm):
 class FeedbackForm(forms.ModelForm):
     class Meta:
         model = FeedbackMessage
-        fields = ("name", "email", "subject", "message")
+        fields = ("name", "email", "subject", "message", "attachment")
         labels = {
             "name": "Ваше имя",
             "email": "Email",
             "subject": "Тема",
             "message": "Сообщение",
+            "attachment": "Вложение",
         }
 
 

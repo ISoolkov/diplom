@@ -6,7 +6,7 @@
 
 <div class="community-layout">
     <section>
-        <form method="post" class="form">
+        <form method="post" enctype="multipart/form-data" class="form">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Отправить обращение</button>
@@ -22,4 +22,62 @@
         </article>
     </aside>
 </div>
+<script>
+    (function () {
+        var attachmentInput = document.getElementById("id_attachment");
+        if (!attachmentInput) {
+            return;
+        }
+
+        var wrapper = document.createElement("span");
+        wrapper.style.display = "inline-flex";
+        wrapper.style.alignItems = "center";
+        wrapper.style.gap = "0.35rem";
+        wrapper.style.marginLeft = "0.5rem";
+
+        var fileName = document.createElement("small");
+        fileName.style.color = "#4f6a84";
+
+        var clearIcon = document.createElement("button");
+        clearIcon.type = "button";
+        clearIcon.textContent = "×";
+        clearIcon.setAttribute("aria-label", "Убрать файл");
+        clearIcon.title = "Убрать файл";
+        clearIcon.style.display = "none";
+        clearIcon.style.width = "24px";
+        clearIcon.style.height = "24px";
+        clearIcon.style.padding = "0";
+        clearIcon.style.border = "1px solid #a0b3c6";
+        clearIcon.style.borderRadius = "50%";
+        clearIcon.style.background = "#fff";
+        clearIcon.style.color = "#132041";
+        clearIcon.style.cursor = "pointer";
+        clearIcon.style.lineHeight = "1";
+        clearIcon.style.fontSize = "18px";
+
+        function refreshAttachmentUi() {
+            if (attachmentInput.files && attachmentInput.files.length > 0) {
+                fileName.textContent = attachmentInput.files[0].name;
+                clearIcon.style.display = "inline-flex";
+                clearIcon.style.alignItems = "center";
+                clearIcon.style.justifyContent = "center";
+            } else {
+                fileName.textContent = "";
+                clearIcon.style.display = "none";
+            }
+        }
+
+        clearIcon.addEventListener("click", function () {
+            attachmentInput.value = "";
+            attachmentInput.dispatchEvent(new Event("change"));
+        });
+
+        attachmentInput.addEventListener("change", refreshAttachmentUi);
+
+        wrapper.appendChild(fileName);
+        wrapper.appendChild(clearIcon);
+        attachmentInput.insertAdjacentElement("afterend", wrapper);
+        refreshAttachmentUi();
+    })();
+</script>
 {% endblock %}

@@ -15,6 +15,9 @@
             <h2>{{ item.subject }}</h2>
             <p><strong>Статус:</strong> {{ item.get_status_display }}</p>
             <div>{{ item.message|linebreaks }}</div>
+            {% if item.attachment %}
+                <p><a href="{{ item.attachment.url }}" target="_blank" rel="noopener">Открыть вложение</a></p>
+            {% endif %}
             {% if item.moderation_comment %}
                 <p><strong>Комментарий модератора:</strong> {{ item.moderation_comment }}</p>
             {% endif %}
