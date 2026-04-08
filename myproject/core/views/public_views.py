@@ -1,4 +1,5 @@
 ﻿import random
+from datetime import timedelta
 from pathlib import Path
 
 from django.conf import settings
@@ -32,6 +33,7 @@ from core.models import (
     Event,
     EventRegistration,
     FAQ,
+    FeedbackMessage,
     News,
     Poll,
     PollOption,
@@ -46,6 +48,7 @@ from core.site_settings import get_maintenance_settings
 from core.services import ServiceValidationError, log_user_activity, register_for_event
 
 User = get_user_model()
+SUBMISSION_COOLDOWN = timedelta(minutes=1)
 
 
 def _document_display_name(filename):
@@ -192,6 +195,13 @@ def event_detail(request, pk):
     if request.user.is_authenticated:
         already_registered = EventRegistration.objects.filter(user=request.user, event=event).exists()
         if request.method == "POST" and not already_registered:
+            if EventRegistration.objects.filter(
+                user=request.user,
+                created_at__gte=timezone.now() - SUBMISSION_COOLDOWN,
+            ).exists():
+                messages.error(request, "Регистрация на мероприятия доступна не чаще одного раза в минуту.")
+                return redirect("core:event_detail", pk=event.pk)
+
             form = EventRegistrationForm(request.POST)
             if form.is_valid():
                 try:
@@ -293,12 +303,33 @@ def faq_list(request):
 
 def feedback_create(request):
     if request.method == "POST":
+        if request.user.is_authenticated:
+            if FeedbackMessage.objects.filter(
+                user=request.user,
+                created_at__gte=timezone.now() - SUBMISSION_COOLDOWN,
+            ).exists():
+                messages.error(request, "Отправлять обращения можно не чаще одного раза в минуту.")
+                return redirect("core:feedback")
+        else:
+            last_sent_ts = request.session.get("feedback_last_sent_ts")
+            if last_sent_ts:
+                try:
+                    last_sent = timezone.datetime.fromisoformat(last_sent_ts)
+                    if timezone.is_naive(last_sent):
+                        last_sent = timezone.make_aware(last_sent, timezone.get_current_timezone())
+                    if timezone.now() - last_sent < SUBMISSION_COOLDOWN:
+                        messages.error(request, "Отправлять обращения можно не чаще одного раза в минуту.")
+                        return redirect("core:feedback")
+                except (ValueError, TypeError):
+                    pass
+
         form = FeedbackForm(request.POST)
         if form.is_valid():
             item = form.save(commit=False)
             if request.user.is_authenticated:
                 item.user = request.user
             item.save()
+            request.session["feedback_last_sent_ts"] = timezone.now().isoformat()
             messages.success(request, "Ваше обращение отправлено. Спасибо за обратную связь.")
             log_user_activity(request, "feedback.created", f"feedback_id={item.id}")
             return redirect("core:feedback")

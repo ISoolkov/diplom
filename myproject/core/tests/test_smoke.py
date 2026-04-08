@@ -203,6 +203,36 @@ class SmokeTests(TestCase):
         self.assertEqual(response.url, reverse("core:feedback"))
         self.assertEqual(FeedbackMessage.objects.count(), 1)
 
+    def test_feedback_form_rate_limited_to_once_per_minute(self):
+        user = self.create_user("feedback_rate_user")
+        self.client.force_login(user)
+
+        first = self.client.post(
+            reverse("core:feedback"),
+            {
+                "name": "Тест",
+                "email": "test@example.com",
+                "subject": "Первое обращение",
+                "message": "Первое сообщение",
+            },
+        )
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(FeedbackMessage.objects.filter(user=user).count(), 1)
+
+        second = self.client.post(
+            reverse("core:feedback"),
+            {
+                "name": "Тест",
+                "email": "test@example.com",
+                "subject": "Второе обращение",
+                "message": "Второе сообщение",
+            },
+            follow=True,
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertContains(second, "не чаще одного раза в минуту")
+        self.assertEqual(FeedbackMessage.objects.filter(user=user).count(), 1)
+
     def test_export_events_docx_returns_file(self):
         admin = self.create_user("report_admin", role=UserProfile.ROLE_ADMIN)
         Event.objects.create(
@@ -287,6 +317,42 @@ class SmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Достигнут лимит участников мероприятия.")
         self.assertEqual(EventRegistration.objects.filter(event=event).count(), 1)
+
+    def test_event_registration_rate_limited_to_once_per_minute(self):
+        user = self.create_user("event_rate_user")
+        event_1 = Event.objects.create(
+            title="Событие 1",
+            description="Описание",
+            short_description="Коротко",
+            location="Аудитория 301",
+            start_at=timezone.now() + timedelta(days=3),
+            is_published=True,
+        )
+        event_2 = Event.objects.create(
+            title="Событие 2",
+            description="Описание",
+            short_description="Коротко",
+            location="Аудитория 302",
+            start_at=timezone.now() + timedelta(days=4),
+            is_published=True,
+        )
+        self.client.force_login(user)
+
+        first = self.client.post(
+            reverse("core:event_detail", kwargs={"pk": event_1.pk}),
+            {"comment": "Первый запрос"},
+        )
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(EventRegistration.objects.filter(user=user).count(), 1)
+
+        second = self.client.post(
+            reverse("core:event_detail", kwargs={"pk": event_2.pk}),
+            {"comment": "Второй запрос"},
+            follow=True,
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertContains(second, "не чаще одного раза в минуту")
+        self.assertEqual(EventRegistration.objects.filter(user=user).count(), 1)
 
     def test_manager_can_update_event_from_events_list(self):
         manager = self.create_user("events_manager", role=UserProfile.ROLE_MANAGER)
