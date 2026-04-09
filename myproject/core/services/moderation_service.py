@@ -50,6 +50,8 @@ def update_feedback_status(feedback, new_status, moderation_comment):
 
 
 def update_join_request_status(join_request, new_status, moderation_comment):
+    if join_request.status in {join_request.STATUS_APPROVED, join_request.STATUS_REJECTED}:
+        raise ServiceValidationError("Заявка уже закрыта и не может быть изменена.")
     _validate_choice(new_status, join_request.STATUS_CHOICES, "Передан некорректный статус заявки.")
     join_request.status = new_status
     join_request.moderation_comment = moderation_comment.strip()

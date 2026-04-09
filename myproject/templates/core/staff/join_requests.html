@@ -46,13 +46,17 @@
                         <form method="post" class="inline-controls">
                             {% csrf_token %}
                             <input type="hidden" name="join_id" value="{{ item.id }}">
-                            <select name="status">
+                            <select name="status" {% if item.status == item.STATUS_APPROVED or item.status == item.STATUS_REJECTED %}disabled{% endif %}>
                                 {% for value, label in item.STATUS_CHOICES %}
                                     <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
-                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
-                            <button type="submit">Сохранить изменения</button>
+                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора" {% if item.status == item.STATUS_APPROVED or item.status == item.STATUS_REJECTED %}disabled{% endif %}>{{ item.moderation_comment }}</textarea>
+                            {% if item.status == item.STATUS_APPROVED or item.status == item.STATUS_REJECTED %}
+                                <p><small>Заявка закрыта, изменение недоступно.</small></p>
+                            {% else %}
+                                <button type="submit">Сохранить изменения</button>
+                            {% endif %}
                         </form>
                     </td>
                 </tr>
@@ -94,13 +98,17 @@
                         <form method="post" class="inline-controls">
                             {% csrf_token %}
                             <input type="hidden" name="event_feedback_id" value="{{ item.id }}">
-                            <select name="status">
+                            <select name="status" {% if item.status == item.STATUS_RESOLVED %}disabled{% endif %}>
                                 {% for value, label in item.STATUS_CHOICES %}
                                     <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
-                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора">{{ item.moderation_comment }}</textarea>
-                            <button type="submit">Сохранить изменения</button>
+                            <textarea name="moderation_comment" rows="2" placeholder="Комментарий модератора" {% if item.status == item.STATUS_RESOLVED %}disabled{% endif %}>{{ item.moderation_comment }}</textarea>
+                            {% if item.status == item.STATUS_RESOLVED %}
+                                <p><small>Заявка закрыта (решено), изменение недоступно.</small></p>
+                            {% else %}
+                                <button type="submit">Сохранить изменения</button>
+                            {% endif %}
                         </form>
                     </td>
                 </tr>

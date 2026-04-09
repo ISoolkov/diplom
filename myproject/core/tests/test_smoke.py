@@ -760,6 +760,50 @@ class SmokeTests(TestCase):
         self.assertEqual(feedback.status, FeedbackMessage.STATUS_RESOLVED)
         self.assertEqual(feedback.moderation_comment, "Первичный комментарий")
 
+    def test_closed_join_request_cannot_be_changed_manually(self):
+        manager = self.create_user("manager_closed_join", role=UserProfile.ROLE_MANAGER)
+        join_request = CouncilJoinApplication.objects.create(
+            full_name="Тестовый Студент",
+            email="closed_join@example.com",
+            phone="+7 (900) 000-00-00",
+            faculty="management",
+            motivation="Хочу в команду",
+            status=CouncilJoinApplication.STATUS_APPROVED,
+            moderation_comment="Одобрено",
+        )
+        self.client.force_login(manager)
+
+        response = self.client.post(
+            reverse("core:staff_join_requests"),
+            {
+                "join_id": join_request.id,
+                "status": CouncilJoinApplication.STATUS_REJECTED,
+                "moderation_comment": "Пытаюсь изменить закрытую заявку",
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Заявка уже закрыта")
+        join_request.refresh_from_db()
+        self.assertEqual(join_request.status, CouncilJoinApplication.STATUS_APPROVED)
+        self.assertEqual(join_request.moderation_comment, "Одобрено")
+
+    def test_resolved_event_request_hides_save_button(self):
+        manager = self.create_user("manager_closed_event_req", role=UserProfile.ROLE_MANAGER)
+        FeedbackMessage.objects.create(
+            name="Студент",
+            email="student@example.com",
+            subject=f"{EVENT_REGISTRATION_SUBJECT_PREFIX} Заявка на мероприятие: Закрытая",
+            message="Тест",
+            status=FeedbackMessage.STATUS_RESOLVED,
+            moderation_comment="Решено",
+        )
+        self.client.force_login(manager)
+
+        response = self.client.get(reverse("core:staff_join_requests"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Заявка закрыта (решено), изменение недоступно.")
+
     def test_student_cannot_create_community_post(self):
         student = self.create_user("student_community", role=UserProfile.ROLE_STUDENT)
         self.client.force_login(student)
