@@ -78,6 +78,7 @@ class EventRegistration(TimestampedModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="registrations")
     comment = models.CharField(max_length=255, blank=True)
+    reminder_sent_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         unique_together = ("user", "event")

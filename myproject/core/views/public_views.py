@@ -138,12 +138,15 @@ def events_list(request):
     invalid_form_event_id = None
 
     if request.method == "POST":
-        if not can_manage_events:
-            messages.error(request, "Недостаточно прав для редактирования анонсов.")
+        def _events_list_redirect():
             target_url = reverse("core:events_list")
             if archive:
                 target_url = f"{target_url}?archive=1"
             return redirect(target_url)
+
+        if not can_manage_events:
+            messages.error(request, "Недостаточно прав для редактирования анонсов.")
+            return _events_list_redirect()
 
         action = request.POST.get("action", "update")
         if action == "create":
@@ -159,6 +162,16 @@ def events_list(request):
                 log_user_activity(request, "event.announcement.created", f"event_id={event.id}")
                 return redirect("core:events_list")
             messages.error(request, "Проверьте поля формы нового мероприятия.")
+        elif action == "delete":
+            event = get_object_or_404(Event, pk=request.POST.get("event_id"), is_published=True)
+            event_id = event.id
+            event_title = event.title
+            if event.image:
+                event.image.delete(save=False)
+            event.delete()
+            messages.success(request, f"Мероприятие «{event_title}» удалено.")
+            log_user_activity(request, "event.announcement.deleted", f"event_id={event_id}")
+            return _events_list_redirect()
         else:
             event = get_object_or_404(Event, pk=request.POST.get("event_id"), is_published=True)
             form = EventManageForm(request.POST, request.FILES, instance=event)
@@ -166,10 +179,7 @@ def events_list(request):
                 form.save()
                 messages.success(request, "Анонс мероприятия обновлен.")
                 log_user_activity(request, "event.announcement.updated", f"event_id={event.id}")
-                target_url = reverse("core:events_list")
-                if archive:
-                    target_url = f"{target_url}?archive=1"
-                return redirect(target_url)
+                return _events_list_redirect()
 
             messages.error(request, "Проверьте поля формы и попробуйте снова.")
             invalid_form_event_id = event.pk

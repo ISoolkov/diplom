@@ -1,6 +1,7 @@
 ﻿from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -583,6 +584,26 @@ class SmokeTests(TestCase):
         self.assertEqual(join_response.status_code, 200)
         self.assertContains(join_response, "Заявка на мероприятие: Тест")
 
+    def test_manager_can_delete_event_from_events_list(self):
+        manager = self.create_user("events_delete_manager", role=UserProfile.ROLE_MANAGER)
+        event = Event.objects.create(
+            title="Удаляемое мероприятие",
+            description="Описание",
+            short_description="Коротко",
+            location="Кампус",
+            start_at=timezone.now() + timedelta(days=5),
+            is_published=True,
+        )
+        self.client.force_login(manager)
+
+        response = self.client.post(
+            reverse("core:events_list"),
+            {"action": "delete", "event_id": event.id, "archive": "0"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Event.objects.filter(id=event.id).exists())
+
     def test_staff_feedbacks_marks_overdue_items(self):
         manager = self.create_user("feedback_overdue_manager", role=UserProfile.ROLE_MANAGER)
         overdue = FeedbackMessage.objects.create(
@@ -650,6 +671,30 @@ class SmokeTests(TestCase):
         recipients = {msg.to[0] for msg in mail.outbox}
         self.assertSetEqual(recipients, {"student1@example.com", "student2@example.com"})
         self.assertTrue(all("Новый анонс мероприятия" in msg.subject for msg in mail.outbox))
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_event_reminder_command_sends_once_per_registration(self):
+        student = self.create_user("event_reminder_student")
+        student.email = "event_reminder_student@example.com"
+        student.save(update_fields=["email"])
+
+        event = Event.objects.create(
+            title="Встреча клуба проектов",
+            description="Описание",
+            short_description="Короткий анонс",
+            location="Аудитория 101",
+            start_at=timezone.now() + timedelta(hours=24, minutes=20),
+            is_published=True,
+        )
+        registration = EventRegistration.objects.create(user=student, event=event, comment="")
+
+        call_command("send_event_reminders", window_minutes=60)
+        self.assertEqual(len(mail.outbox), 1)
+        registration.refresh_from_db()
+        self.assertIsNotNone(registration.reminder_sent_at)
+
+        call_command("send_event_reminders", window_minutes=60)
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_manager_can_attach_file_in_feedback_response_and_student_can_download(self):
         student = self.create_user("student_feedback_file", role=UserProfile.ROLE_STUDENT)

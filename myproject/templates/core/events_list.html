@@ -48,6 +48,13 @@
                         {{ event.edit_form.as_p }}
                         <button type="submit">Сохранить изменения</button>
                     </form>
+                    <form method="post" style="margin-top: 0.6rem;" onsubmit="return confirm('Удалить мероприятие? Это действие нельзя отменить.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                        <input type="hidden" name="archive" value="{% if archive %}1{% else %}0{% endif %}">
+                        <button type="submit">Удалить мероприятие</button>
+                    </form>
                 </details>
             {% endif %}
         </article>
