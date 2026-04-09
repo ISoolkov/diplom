@@ -1064,6 +1064,24 @@ small {
     font-weight: 700;
 }
 
+.admin-table tr.is-overdue td {
+    background: #fff4f6;
+}
+
+.overdue-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.45rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid #f2a4b2;
+    color: #9b0123;
+    background: #fff;
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
 .inline-controls {
     display: grid;
     gap: 0.5rem;

@@ -583,6 +583,38 @@ class SmokeTests(TestCase):
         self.assertEqual(join_response.status_code, 200)
         self.assertContains(join_response, "Заявка на мероприятие: Тест")
 
+    def test_staff_feedbacks_marks_overdue_items(self):
+        manager = self.create_user("feedback_overdue_manager", role=UserProfile.ROLE_MANAGER)
+        overdue = FeedbackMessage.objects.create(
+            name="Студент",
+            email="student_overdue@example.com",
+            subject="Просроченное обращение",
+            message="Без ответа больше 48 часов",
+            status=FeedbackMessage.STATUS_NEW,
+            moderation_comment="",
+        )
+        FeedbackMessage.objects.filter(pk=overdue.pk).update(
+            created_at=timezone.now() - timedelta(hours=49)
+        )
+        resolved_old = FeedbackMessage.objects.create(
+            name="Студент",
+            email="student_resolved@example.com",
+            subject="Старое закрытое обращение",
+            message="Уже закрыто",
+            status=FeedbackMessage.STATUS_RESOLVED,
+            moderation_comment="Ответ есть",
+        )
+        FeedbackMessage.objects.filter(pk=resolved_old.pk).update(
+            created_at=timezone.now() - timedelta(hours=72)
+        )
+
+        self.client.force_login(manager)
+        response = self.client.get(reverse("core:staff_feedbacks"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Просроченное обращение")
+        self.assertContains(response, "Просрочено", count=1)
+
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_new_event_sends_email_announcements(self):
         manager = self.create_user("event_notifier_manager", role=UserProfile.ROLE_MANAGER)

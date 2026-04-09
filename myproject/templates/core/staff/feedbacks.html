@@ -26,7 +26,7 @@
         </thead>
         <tbody>
             {% for item in items %}
-                <tr>
+                <tr class="{% if item.is_overdue %}is-overdue{% endif %}">
                     <td>{{ item.id }}</td>
                     <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>
                     <td>
@@ -35,6 +35,9 @@
                     </td>
                     <td>
                         <strong>{{ item.subject }}</strong>
+                        {% if item.is_overdue %}
+                            <span class="overdue-badge">Просрочено &gt; 48 ч</span>
+                        {% endif %}
                         <p>{{ item.message|linebreaksbr }}</p>
                         {% if item.attachment %}
                             <p><a href="{{ item.attachment.url }}" target="_blank" rel="noopener">Открыть вложение</a></p>

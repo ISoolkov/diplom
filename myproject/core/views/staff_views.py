@@ -1,4 +1,6 @@
 ﻿from django.contrib import messages
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.mail import send_mail
@@ -26,6 +28,7 @@ from core.services import (
 )
 
 User = get_user_model()
+FEEDBACK_OVERDUE_HOURS = 48
 
 
 def _normalize_faq_order():
@@ -148,9 +151,19 @@ def staff_feedbacks(request):
             )
         return redirect("core:staff_feedbacks")
 
-    items = FeedbackMessage.objects.select_related("user").exclude(
+    items = list(
+        FeedbackMessage.objects.select_related("user").exclude(
         subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
     )
+    )
+    overdue_border = timezone.now() - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
+    for item in items:
+        moderation_comment = (item.moderation_comment or "").strip()
+        item.is_overdue = (
+            item.status != FeedbackMessage.STATUS_RESOLVED
+            and not moderation_comment
+            and item.created_at <= overdue_border
+        )
     return render(request, "core/staff/feedbacks.html", {"items": items})
 
 
