@@ -91,6 +91,33 @@ class SmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "core/staff/dashboard.html")
 
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_admin_can_send_test_email_from_dashboard(self):
+        admin = self.create_user("admin_email_test", role=UserProfile.ROLE_ADMIN)
+        admin.email = "admin_email_test@example.com"
+        admin.save(update_fields=["email"])
+        self.client.force_login(admin)
+
+        response = self.client.post(
+            reverse("core:staff_dashboard"),
+            {"action": "send_test_email", "test_email_to": "student_test@example.com"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["student_test@example.com"])
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_manager_cannot_send_test_email_from_dashboard(self):
+        manager = self.create_user("manager_email_test", role=UserProfile.ROLE_MANAGER)
+        self.client.force_login(manager)
+
+        response = self.client.post(
+            reverse("core:staff_dashboard"),
+            {"action": "send_test_email", "test_email_to": "student_test@example.com"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_staff_reports_available_for_manager(self):
         manager = self.create_user("manager", role=UserProfile.ROLE_MANAGER)
         self.client.force_login(manager)

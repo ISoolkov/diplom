@@ -1,5 +1,7 @@
 ﻿from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Count
 from django.http import FileResponse
@@ -38,13 +40,37 @@ def _normalize_faq_order():
 def staff_dashboard(request):
     maintenance_settings = get_maintenance_settings()
 
-    if request.method == "POST" and request.POST.get("action") in {"enable_maintenance", "disable_maintenance"}:
+    if request.method == "POST" and request.POST.get("action") in {"enable_maintenance", "disable_maintenance", "send_test_email"}:
         is_admin = hasattr(request.user, "profile") and request.user.profile.is_admin
         if not is_admin:
             messages.error(request, "Только администратор может управлять техобслуживанием.")
             return redirect("core:staff_dashboard")
 
         action = request.POST.get("action")
+        if action == "send_test_email":
+            recipient = (request.POST.get("test_email_to") or request.user.email or "").strip()
+            if not recipient:
+                messages.error(request, "Укажите email для тестовой отправки.")
+                return redirect("core:staff_dashboard")
+
+            try:
+                send_mail(
+                    subject="Тестовая отправка почты из админ-панели",
+                    message=(
+                        "Это тестовое письмо отправлено из панели управления студсовета.\n"
+                        f"Время отправки: {timezone.localtime():%d.%m.%Y %H:%M}"
+                    ),
+                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@muiv.local"),
+                    recipient_list=[recipient],
+                    fail_silently=False,
+                )
+            except Exception as exc:
+                messages.error(request, f"Тестовое письмо не отправлено: {exc}")
+            else:
+                messages.success(request, f"Тестовое письмо отправлено на {recipient}.")
+                log_user_activity(request, "staff.email.test_sent", f"to={recipient}")
+            return redirect("core:staff_dashboard")
+
         if action == "enable_maintenance":
             ends_at_raw = request.POST.get("maintenance_ends_at", "").strip()
             ends_at_value = parse_datetime(ends_at_raw)

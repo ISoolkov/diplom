@@ -60,6 +60,25 @@
         <input type="hidden" name="action" value="disable_maintenance">
         <button type="submit">Выключить техобслуживание</button>
     </form>
+
+    <hr style="margin: 1rem 0;">
+    <h3>Проверка отправки email</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="send_test_email">
+        <p>
+            <label for="test_email_to">Email получателя теста</label><br>
+            <input
+                id="test_email_to"
+                name="test_email_to"
+                type="email"
+                value="{{ request.user.email }}"
+                placeholder="name@example.com"
+                required
+            >
+        </p>
+        <button type="submit">Отправить тестовое письмо</button>
+    </form>
 </section>
 {% endif %}
 

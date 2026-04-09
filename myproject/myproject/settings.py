@@ -149,3 +149,7 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "1") == "1"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@muiv.local")
+EMAIL_FILE_PATH = os.getenv("EMAIL_FILE_PATH", str(BASE_DIR / "mail_outbox"))
+
+if EMAIL_BACKEND == "django.core.mail.backends.filebased.EmailBackend":
+    Path(EMAIL_FILE_PATH).mkdir(parents=True, exist_ok=True)
