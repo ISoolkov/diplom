@@ -30,6 +30,8 @@ def _send_status_email(email, subject, body):
 
 
 def update_feedback_status(feedback, new_status, moderation_comment):
+    if feedback.status == feedback.STATUS_RESOLVED:
+        raise ServiceValidationError("Обращение уже закрыто (статус «Решено») и не может быть изменено.")
     _validate_choice(new_status, feedback.STATUS_CHOICES, "Передан некорректный статус обращения.")
     feedback.status = new_status
     feedback.moderation_comment = moderation_comment.strip()

@@ -591,6 +591,34 @@ class SmokeTests(TestCase):
         self.assertEqual(my_feedbacks.status_code, 200)
         self.assertContains(my_feedbacks, "Скачать файл от модератора")
 
+    def test_resolved_feedback_cannot_be_changed_manually(self):
+        manager = self.create_user("manager_closed_feedback", role=UserProfile.ROLE_MANAGER)
+        feedback = FeedbackMessage.objects.create(
+            name="Пользователь",
+            email="closed_feedback@example.com",
+            subject="Закрытое обращение",
+            message="Текст",
+            status=FeedbackMessage.STATUS_RESOLVED,
+            moderation_comment="Первичный комментарий",
+        )
+        self.client.force_login(manager)
+
+        response = self.client.post(
+            reverse("core:staff_feedbacks"),
+            {
+                "feedback_id": feedback.id,
+                "status": FeedbackMessage.STATUS_IN_PROGRESS,
+                "moderation_comment": "Пытаюсь изменить закрытое обращение",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Обращение уже закрыто")
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.status, FeedbackMessage.STATUS_RESOLVED)
+        self.assertEqual(feedback.moderation_comment, "Первичный комментарий")
+
     def test_student_cannot_create_community_post(self):
         student = self.create_user("student_community", role=UserProfile.ROLE_STUDENT)
         self.client.force_login(student)
