@@ -45,7 +45,12 @@ from core.models import (
 from core.permissions import has_any_role
 from core.security.totp import build_otpauth_uri, generate_totp_secret, verify_totp
 from core.site_settings import get_maintenance_settings
-from core.services import ServiceValidationError, log_user_activity, register_for_event
+from core.services import (
+    ServiceValidationError,
+    log_user_activity,
+    register_for_event,
+    send_new_event_announcement,
+)
 
 User = get_user_model()
 SUBMISSION_COOLDOWN = timedelta(minutes=1)
@@ -149,6 +154,7 @@ def events_list(request):
                 event.description = event.short_description
                 event.is_published = True
                 event.save()
+                send_new_event_announcement(event=event, actor=request.user)
                 messages.success(request, "Новое мероприятие добавлено.")
                 log_user_activity(request, "event.announcement.created", f"event_id={event.id}")
                 return redirect("core:events_list")

@@ -10,6 +10,7 @@ from .moderation_service import (
     update_join_request_status,
     update_user_role,
 )
+from .notification_service import send_new_event_announcement
 from .report_service import build_events_docx, build_feedback_xlsx
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "update_feedback_status",
     "update_join_request_status",
     "update_user_role",
+    "send_new_event_announcement",
 ]

@@ -1,6 +1,7 @@
 ﻿from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -554,6 +555,42 @@ class SmokeTests(TestCase):
         join_response = self.client.get(reverse("core:staff_join_requests"))
         self.assertEqual(join_response.status_code, 200)
         self.assertContains(join_response, "Заявка на мероприятие: Тест")
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_new_event_sends_email_announcements(self):
+        manager = self.create_user("event_notifier_manager", role=UserProfile.ROLE_MANAGER)
+        manager.email = "manager@example.com"
+        manager.save(update_fields=["email"])
+
+        student_one = self.create_user("event_mail_user_1")
+        student_one.email = "student1@example.com"
+        student_one.save(update_fields=["email"])
+
+        student_two = self.create_user("event_mail_user_2")
+        student_two.email = "student2@example.com"
+        student_two.save(update_fields=["email"])
+
+        self.client.force_login(manager)
+        start_at = timezone.now() + timedelta(days=3)
+
+        response = self.client.post(
+            reverse("core:events_list"),
+            {
+                "action": "create",
+                "title": "Новый тестовый анонс",
+                "short_description": "Анонс для проверки email-уведомлений",
+                "location": "Кампус",
+                "start_at": start_at.strftime("%Y-%m-%dT%H:%M"),
+                "registration_deadline": "",
+                "max_participants": "25",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 2)
+        recipients = {msg.to[0] for msg in mail.outbox}
+        self.assertSetEqual(recipients, {"student1@example.com", "student2@example.com"})
+        self.assertTrue(all("Новый анонс мероприятия" in msg.subject for msg in mail.outbox))
 
     def test_manager_can_attach_file_in_feedback_response_and_student_can_download(self):
         student = self.create_user("student_feedback_file", role=UserProfile.ROLE_STUDENT)
