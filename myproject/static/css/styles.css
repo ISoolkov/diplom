@@ -1795,6 +1795,83 @@ html.dark-theme .lang-dropdown-item.is-active {
     color: #ffffff;
 }
 
+html.dark-theme .page-nav a {
+    background: #1d2f4d;
+    border-color: #415779;
+    color: #d7e3f8;
+}
+
+html.dark-theme .page-nav a.is-active,
+html.dark-theme .page-nav a:hover {
+    background: #273a5f;
+    border-color: #5a759e;
+    color: #ffffff;
+}
+
+html.dark-theme .admin-table tr.is-overdue td {
+    background: #2a2233;
+}
+
+html.dark-theme .overdue-badge {
+    border-color: #7a4e68;
+    color: #ffd7e2;
+    background: #3a293c;
+}
+
+html.dark-theme .sla-badge {
+    border-color: #546e96;
+    color: #d7e3f8;
+    background: #223553;
+}
+
+html.dark-theme .docs-open-btn {
+    background: #1e2e4d;
+    border-color: #415779;
+    color: #e6eefc;
+}
+
+html.dark-theme .docs-open-btn:hover {
+    background: #273a5f;
+    border-color: #5a759e;
+    color: #ffffff;
+}
+
+html.dark-theme .consent-box {
+    background: #1e2e4d;
+    border-color: #415779;
+}
+
+html.dark-theme .consent-box:hover {
+    background: #273a5f;
+    border-color: #5a759e;
+}
+
+html.dark-theme .consent-box.is-checked {
+    background: #2b3f62;
+    color: #ffffff;
+    border-color: #5a759e;
+}
+
+html.dark-theme .consent-captcha {
+    background: #1e2e4d;
+    border-color: #415779;
+}
+
+html.dark-theme input[type="file"]::file-selector-button {
+    border: 1px solid #415779;
+    border-radius: 8px;
+    background: #1e2e4d;
+    color: #e6eefc;
+    padding: 0.35rem 0.65rem;
+    margin-right: 0.55rem;
+    cursor: pointer;
+}
+
+html.dark-theme input[type="file"]::file-selector-button:hover {
+    background: #273a5f;
+    border-color: #5a759e;
+}
+
 .contrast-toggle:hover {
     background: #132041;
     color: #fff;
