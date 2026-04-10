@@ -11,6 +11,9 @@
     <script>
         (function () {
             try {
+                if (localStorage.getItem("site_theme") === "dark") {
+                    document.documentElement.classList.add("dark-theme");
+                }
                 if (localStorage.getItem("accessibility_contrast") === "1") {
                     document.documentElement.classList.add("high-contrast");
                 }
@@ -262,6 +265,49 @@
         </div>
     </footer>
 
+    <script>
+        (function () {
+            var htmlRoot = document.documentElement;
+            var desktopThemeToggle = document.getElementById("themeToggleDesktop");
+            var mobileThemeToggle = document.getElementById("themeToggleMobile");
+
+            function isDarkTheme() {
+                return htmlRoot.classList.contains("dark-theme");
+            }
+
+            function updateThemeLabels() {
+                var text = isDarkTheme() ? "Тема: темная" : "Тема: светлая";
+                if (desktopThemeToggle) {
+                    desktopThemeToggle.textContent = text;
+                }
+                if (mobileThemeToggle) {
+                    mobileThemeToggle.textContent = text;
+                }
+            }
+
+            function setTheme(mode) {
+                var enableDark = mode === "dark";
+                htmlRoot.classList.toggle("dark-theme", enableDark);
+                try {
+                    localStorage.setItem("site_theme", enableDark ? "dark" : "light");
+                } catch (e) {}
+                updateThemeLabels();
+            }
+
+            function toggleTheme() {
+                setTheme(isDarkTheme() ? "light" : "dark");
+            }
+
+            if (desktopThemeToggle) {
+                desktopThemeToggle.addEventListener("click", toggleTheme);
+            }
+            if (mobileThemeToggle) {
+                mobileThemeToggle.addEventListener("click", toggleTheme);
+            }
+
+            updateThemeLabels();
+        })();
+    </script>
     <script>
         (function () {
             var htmlRoot = document.documentElement;

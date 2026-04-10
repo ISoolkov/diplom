@@ -1684,6 +1684,103 @@ button:hover {
     margin-top: 0.4rem;
 }
 
+html.dark-theme {
+    --muiv-dark: #e6eefc;
+    --muiv-slate: #b7c7df;
+    --muiv-muted: #7f93b1;
+    --muiv-bg: #0f1729;
+    --muiv-bg-soft: #16223a;
+    --muiv-border: #2f3f5e;
+    --muiv-card-border: #4c607f;
+    --muiv-white: #17243d;
+    --muiv-footer: #050b19;
+}
+
+html.dark-theme body {
+    background: radial-gradient(circle at 10% 0%, #1a2a48 0%, #0f1729 58%);
+    color: var(--muiv-dark);
+}
+
+html.dark-theme .card,
+html.dark-theme .detail,
+html.dark-theme .faq-item,
+html.dark-theme .form,
+html.dark-theme .info-card,
+html.dark-theme .timeline,
+html.dark-theme .cta-band,
+html.dark-theme .section-panel,
+html.dark-theme .stat-card,
+html.dark-theme .post-card,
+html.dark-theme .comment-card,
+html.dark-theme .docs-row,
+html.dark-theme .message {
+    background: #1a2b47 !important;
+    border-color: #415779;
+}
+
+html.dark-theme .section-panel {
+    background: #1a2b47 !important;
+}
+
+html.dark-theme .stat-card {
+    background: #1d2f4d !important;
+}
+
+html.dark-theme p,
+html.dark-theme li,
+html.dark-theme small,
+html.dark-theme .field-note,
+html.dark-theme .post-meta,
+html.dark-theme .comment-meta,
+html.dark-theme .breadcrumbs li,
+html.dark-theme .breadcrumbs li + li::before {
+    color: #d7e3f8;
+}
+
+html.dark-theme .main a {
+    color: #e6eefc;
+    border-color: #8ea6c9;
+}
+
+html.dark-theme .main a:hover {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+html.dark-theme .main-header {
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+html.dark-theme .lang-dropdown-toggle,
+html.dark-theme .theme-toggle,
+html.dark-theme .contrast-toggle {
+    background: #1e2e4d;
+    border-color: #415779;
+    color: #e6eefc;
+}
+
+html.dark-theme .lang-dropdown-toggle:hover,
+html.dark-theme .theme-toggle:hover,
+html.dark-theme .contrast-toggle:hover {
+    background: #273a5f;
+    border-color: #546e96;
+}
+
+html.dark-theme .lang-dropdown-menu {
+    background: #17243d;
+    border-color: #415779;
+}
+
+html.dark-theme .lang-dropdown-item {
+    color: #d7e3f8;
+}
+
+html.dark-theme .lang-dropdown-item:hover,
+html.dark-theme .lang-dropdown-item.is-active {
+    background: #273a5f;
+    color: #ffffff;
+}
+
 .contrast-toggle:hover {
     background: #132041;
     color: #fff;
