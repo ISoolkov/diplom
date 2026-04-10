@@ -11,6 +11,13 @@
 </nav>
 <section class="section-panel">
     <p>Проверьте анкету, выберите статус и при необходимости оставьте комментарий.</p>
+    <p>
+        {% if overdue_only %}
+            <a href="{% url 'core:staff_join_requests' %}">Показать все заявки</a>
+        {% else %}
+            <a href="{% url 'core:staff_join_requests' %}?overdue=1">Только просроченные</a>
+        {% endif %}
+    </p>
 </section>
 
 <div class="table-wrap">
@@ -26,7 +33,7 @@
         </thead>
         <tbody>
             {% for item in items %}
-                <tr>
+                <tr class="{% if item.is_overdue %}is-overdue{% endif %}">
                     <td>{{ item.id }}</td>
                     <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>
                     <td>
@@ -36,6 +43,9 @@
                     </td>
                     <td>
                         <p><strong>Факультет:</strong> {{ item.get_faculty_display }}</p>
+                        {% if item.is_overdue %}
+                            <p><span class="overdue-badge">Просрочено &gt; 48 ч</span></p>
+                        {% endif %}
                         <p><strong>Курс:</strong> {{ item.course|default:"-" }}</p>
                         <p><strong>Мотивация:</strong> {{ item.motivation|linebreaksbr }}</p>
                         {% if item.experience %}
@@ -61,7 +71,7 @@
                     </td>
                 </tr>
             {% empty %}
-                <tr>
+                <tr class="{% if item.is_overdue %}is-overdue{% endif %}">
                     <td colspan="5">Заявок пока нет.</td>
                 </tr>
             {% endfor %}
@@ -92,6 +102,9 @@
                     </td>
                     <td>
                         <strong>{{ item.subject }}</strong>
+                        {% if item.is_overdue %}
+                            <span class="overdue-badge">Просрочено &gt; 48 ч</span>
+                        {% endif %}
                         <p>{{ item.message|linebreaksbr }}</p>
                     </td>
                     <td>

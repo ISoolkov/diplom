@@ -151,10 +151,11 @@ def staff_feedbacks(request):
             )
         return redirect("core:staff_feedbacks")
 
+    overdue_only = request.GET.get("overdue") == "1"
     items = list(
         FeedbackMessage.objects.select_related("user").exclude(
-        subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
-    )
+            subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+        )
     )
     overdue_border = timezone.now() - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
     for item in items:
@@ -164,7 +165,13 @@ def staff_feedbacks(request):
             and not moderation_comment
             and item.created_at <= overdue_border
         )
-    return render(request, "core/staff/feedbacks.html", {"items": items})
+    if overdue_only:
+        items = [item for item in items if item.is_overdue]
+    return render(
+        request,
+        "core/staff/feedbacks.html",
+        {"items": items, "overdue_only": overdue_only},
+    )
 
 
 @role_required(UserProfile.ROLE_ADMIN, UserProfile.ROLE_MANAGER)
@@ -208,14 +215,39 @@ def staff_join_requests(request):
                 )
         return redirect("core:staff_join_requests")
 
-    items = CouncilJoinApplication.objects.select_related("user")
-    event_requests = FeedbackMessage.objects.select_related("user").filter(
-        subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+    overdue_only = request.GET.get("overdue") == "1"
+    overdue_border = timezone.now() - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
+
+    items = list(CouncilJoinApplication.objects.select_related("user"))
+    for item in items:
+        moderation_comment = (item.moderation_comment or "").strip()
+        item.is_overdue = (
+            item.status not in {CouncilJoinApplication.STATUS_APPROVED, CouncilJoinApplication.STATUS_REJECTED}
+            and not moderation_comment
+            and item.created_at <= overdue_border
+        )
+
+    event_requests = list(
+        FeedbackMessage.objects.select_related("user").filter(
+            subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
+        )
     )
+    for item in event_requests:
+        moderation_comment = (item.moderation_comment or "").strip()
+        item.is_overdue = (
+            item.status != FeedbackMessage.STATUS_RESOLVED
+            and not moderation_comment
+            and item.created_at <= overdue_border
+        )
+
+    if overdue_only:
+        items = [item for item in items if item.is_overdue]
+        event_requests = [item for item in event_requests if item.is_overdue]
+
     return render(
         request,
         "core/staff/join_requests.html",
-        {"items": items, "event_requests": event_requests},
+        {"items": items, "event_requests": event_requests, "overdue_only": overdue_only},
     )
 
 

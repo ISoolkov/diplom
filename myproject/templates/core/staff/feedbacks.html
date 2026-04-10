@@ -11,6 +11,13 @@
 </nav>
 <section class="section-panel">
     <p>Изменяйте статус и комментарий модератора, затем нажмите «Сохранить изменения».</p>
+    <p>
+        {% if overdue_only %}
+            <a href="{% url 'core:staff_feedbacks' %}">Показать все обращения</a>
+        {% else %}
+            <a href="{% url 'core:staff_feedbacks' %}?overdue=1">Только просроченные</a>
+        {% endif %}
+    </p>
 </section>
 
 <div class="table-wrap">

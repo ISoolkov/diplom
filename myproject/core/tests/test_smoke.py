@@ -636,6 +636,91 @@ class SmokeTests(TestCase):
         self.assertContains(response, "Просроченное обращение")
         self.assertContains(response, "Просрочено", count=1)
 
+    def test_staff_feedbacks_overdue_filter_shows_only_overdue(self):
+        manager = self.create_user("feedback_overdue_only_manager", role=UserProfile.ROLE_MANAGER)
+        overdue = FeedbackMessage.objects.create(
+            name="Студент",
+            email="student_overdue_only@example.com",
+            subject="Просроченное обращение для фильтра",
+            message="Без ответа",
+            status=FeedbackMessage.STATUS_NEW,
+            moderation_comment="",
+        )
+        FeedbackMessage.objects.filter(pk=overdue.pk).update(
+            created_at=timezone.now() - timedelta(hours=49)
+        )
+        FeedbackMessage.objects.create(
+            name="Студент",
+            email="student_fresh@example.com",
+            subject="Свежий запрос",
+            message="Новый запрос",
+            status=FeedbackMessage.STATUS_NEW,
+            moderation_comment="",
+        )
+
+        self.client.force_login(manager)
+        response = self.client.get(reverse("core:staff_feedbacks") + "?overdue=1")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Просроченное обращение для фильтра")
+        self.assertNotContains(response, "Свежий запрос")
+
+    def test_staff_join_requests_overdue_filter_shows_only_overdue(self):
+        manager = self.create_user("join_overdue_only_manager", role=UserProfile.ROLE_MANAGER)
+
+        overdue_join = CouncilJoinApplication.objects.create(
+            full_name="Просроченный Кандидат",
+            email="overdue_join@example.com",
+            phone="+7 (900) 111-11-11",
+            faculty="management",
+            motivation="Хочу в студсовет",
+            status=CouncilJoinApplication.STATUS_NEW,
+            moderation_comment="",
+        )
+        CouncilJoinApplication.objects.filter(pk=overdue_join.pk).update(
+            created_at=timezone.now() - timedelta(hours=49)
+        )
+
+        CouncilJoinApplication.objects.create(
+            full_name="Свежий Кандидат",
+            email="fresh_join@example.com",
+            phone="+7 (900) 222-22-22",
+            faculty="management",
+            motivation="Свежая заявка",
+            status=CouncilJoinApplication.STATUS_NEW,
+            moderation_comment="",
+        )
+
+        overdue_event_request = FeedbackMessage.objects.create(
+            name="Студент",
+            email="overdue_event@example.com",
+            subject=f"{EVENT_REGISTRATION_SUBJECT_PREFIX} Заявка на мероприятие: Просроченная",
+            message="Тест",
+            status=FeedbackMessage.STATUS_NEW,
+            moderation_comment="",
+        )
+        FeedbackMessage.objects.filter(pk=overdue_event_request.pk).update(
+            created_at=timezone.now() - timedelta(hours=49)
+        )
+
+        FeedbackMessage.objects.create(
+            name="Студент",
+            email="fresh_event@example.com",
+            subject=f"{EVENT_REGISTRATION_SUBJECT_PREFIX} Заявка на мероприятие: Свежая",
+            message="Тест",
+            status=FeedbackMessage.STATUS_NEW,
+            moderation_comment="",
+        )
+
+        self.client.force_login(manager)
+        response = self.client.get(reverse("core:staff_join_requests") + "?overdue=1")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Просроченный Кандидат")
+        self.assertNotContains(response, "Свежий Кандидат")
+        self.assertContains(response, "Просроченная")
+        self.assertNotContains(response, "Свежая")
+
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_new_event_sends_email_announcements(self):
         manager = self.create_user("event_notifier_manager", role=UserProfile.ROLE_MANAGER)
