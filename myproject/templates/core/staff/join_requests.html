@@ -40,6 +40,9 @@
                         <strong>{{ item.full_name }}</strong><br>
                         <small>{{ item.email }}</small><br>
                         <small>{{ item.phone }}</small>
+                        {% if item.response_wait_hours is not None %}
+                            <p><span class="sla-badge">Без ответа: {{ item.response_wait_hours }} ч</span></p>
+                        {% endif %}
                     </td>
                     <td>
                         <p><strong>Факультет:</strong> {{ item.get_faculty_display }}</p>
@@ -99,6 +102,9 @@
                     <td>
                         <strong>{{ item.name }}</strong><br>
                         <small>{{ item.email }}</small>
+                        {% if item.response_wait_hours is not None %}
+                            <p><span class="sla-badge">Без ответа: {{ item.response_wait_hours }} ч</span></p>
+                        {% endif %}
                     </td>
                     <td>
                         <strong>{{ item.subject }}</strong>

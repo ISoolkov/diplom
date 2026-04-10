@@ -1082,6 +1082,20 @@ small {
     line-height: 1.1;
 }
 
+.sla-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.25rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid #9fb6d1;
+    color: #365270;
+    background: #f4f8fc;
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
 .inline-controls {
     display: grid;
     gap: 0.5rem;

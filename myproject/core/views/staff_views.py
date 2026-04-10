@@ -157,9 +157,13 @@ def staff_feedbacks(request):
             subject__startswith=EVENT_REGISTRATION_SUBJECT_PREFIX
         )
     )
-    overdue_border = timezone.now() - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
+    now = timezone.now()
+    overdue_border = now - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
     for item in items:
         moderation_comment = (item.moderation_comment or "").strip()
+        item.response_wait_hours = None
+        if item.status != FeedbackMessage.STATUS_RESOLVED and not moderation_comment:
+            item.response_wait_hours = max(0, int((now - item.created_at).total_seconds() // 3600))
         item.is_overdue = (
             item.status != FeedbackMessage.STATUS_RESOLVED
             and not moderation_comment
@@ -216,11 +220,15 @@ def staff_join_requests(request):
         return redirect("core:staff_join_requests")
 
     overdue_only = request.GET.get("overdue") == "1"
-    overdue_border = timezone.now() - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
+    now = timezone.now()
+    overdue_border = now - timedelta(hours=FEEDBACK_OVERDUE_HOURS)
 
     items = list(CouncilJoinApplication.objects.select_related("user"))
     for item in items:
         moderation_comment = (item.moderation_comment or "").strip()
+        item.response_wait_hours = None
+        if item.status not in {CouncilJoinApplication.STATUS_APPROVED, CouncilJoinApplication.STATUS_REJECTED} and not moderation_comment:
+            item.response_wait_hours = max(0, int((now - item.created_at).total_seconds() // 3600))
         item.is_overdue = (
             item.status not in {CouncilJoinApplication.STATUS_APPROVED, CouncilJoinApplication.STATUS_REJECTED}
             and not moderation_comment
@@ -234,6 +242,9 @@ def staff_join_requests(request):
     )
     for item in event_requests:
         moderation_comment = (item.moderation_comment or "").strip()
+        item.response_wait_hours = None
+        if item.status != FeedbackMessage.STATUS_RESOLVED and not moderation_comment:
+            item.response_wait_hours = max(0, int((now - item.created_at).total_seconds() // 3600))
         item.is_overdue = (
             item.status != FeedbackMessage.STATUS_RESOLVED
             and not moderation_comment

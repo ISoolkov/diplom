@@ -39,6 +39,9 @@
                     <td>
                         {{ item.name }}<br>
                         <small>{{ item.email }}</small>
+                        {% if item.response_wait_hours is not None %}
+                            <p><span class="sla-badge">Без ответа: {{ item.response_wait_hours }} ч</span></p>
+                        {% endif %}
                     </td>
                     <td>
                         <strong>{{ item.subject }}</strong>

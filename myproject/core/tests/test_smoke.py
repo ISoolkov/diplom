@@ -665,6 +665,26 @@ class SmokeTests(TestCase):
         self.assertContains(response, "Просроченное обращение для фильтра")
         self.assertNotContains(response, "Свежий запрос")
 
+    def test_staff_feedbacks_shows_sla_hours_badge(self):
+        manager = self.create_user("feedback_sla_manager", role=UserProfile.ROLE_MANAGER)
+        feedback = FeedbackMessage.objects.create(
+            name="Студент",
+            email="student_sla@example.com",
+            subject="SLA тест",
+            message="Проверка счетчика",
+            status=FeedbackMessage.STATUS_NEW,
+            moderation_comment="",
+        )
+        FeedbackMessage.objects.filter(pk=feedback.pk).update(
+            created_at=timezone.now() - timedelta(hours=50)
+        )
+
+        self.client.force_login(manager)
+        response = self.client.get(reverse("core:staff_feedbacks"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Без ответа:")
+
     def test_staff_join_requests_overdue_filter_shows_only_overdue(self):
         manager = self.create_user("join_overdue_only_manager", role=UserProfile.ROLE_MANAGER)
 
