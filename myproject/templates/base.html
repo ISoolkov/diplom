@@ -95,6 +95,9 @@
                                 <button type="button" class="lang-dropdown-item" data-lang="zh">zh</button>
                             </div>
                         </div>
+                        <button type="button" class="theme-toggle" id="themeToggleDesktop" aria-label="Переключить тему">
+                            Тема: светлая
+                        </button>
                         <button type="button" class="contrast-toggle" id="contrastToggleDesktop">Версия для слабовидящих</button>
                     </div>
                 </div>
@@ -144,6 +147,9 @@
                     <a href="{% url 'login' %}">Вход</a>
                     <a href="{% url 'core:register' %}">Регистрация</a>
                 {% endif %}
+                <button type="button" class="theme-toggle theme-toggle--mobile" id="themeToggleMobile" aria-label="Переключить тему">
+                    Тема: светлая
+                </button>
                 <button type="button" class="contrast-toggle contrast-toggle--mobile" id="contrastToggleMobile">Версия для слабовидящих</button>
             </nav>
         </div>

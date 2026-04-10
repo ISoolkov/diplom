@@ -1661,6 +1661,29 @@ button:hover {
     cursor: pointer;
 }
 
+.theme-toggle {
+    border: 2px solid #d4dee9;
+    background: #f7fbff;
+    color: #132041;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.52rem 0.72rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.theme-toggle:hover {
+    background: #eef4fb;
+    border-color: #c5d5e6;
+}
+
+.theme-toggle--mobile {
+    width: 100%;
+    margin-top: 0.4rem;
+}
+
 .contrast-toggle:hover {
     background: #132041;
     color: #fff;
